@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase';
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const adminClient = createAdminClient();
@@ -17,7 +17,7 @@ export async function PATCH(
 
         const body = await request.json();
         const { is_active } = body;
-        const userId = params.id;
+        const { id: userId } = await params;
 
         // Update user active status in profiles table
         const { error } = await adminClient

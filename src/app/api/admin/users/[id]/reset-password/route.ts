@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const adminClient = createAdminClient();
@@ -17,7 +17,7 @@ export async function POST(
 
         const body = await request.json();
         const { email } = body;
-        const userId = params.id;
+        const { id: userId } = await params;
 
         // Send password reset email
         const { error } = await adminClient.auth.admin.generateLink({
