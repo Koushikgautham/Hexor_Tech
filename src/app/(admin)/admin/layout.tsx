@@ -90,6 +90,14 @@ export default function AdminLayout({
                                     Users
                                 </motion.div>
                             </Link>
+                            <Link href="/admin/projects">
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                                >
+                                    Projects
+                                </motion.div>
+                            </Link>
                             <Link href="/admin/settings">
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
