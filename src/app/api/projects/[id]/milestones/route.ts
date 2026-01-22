@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase-server";
 
 // GET all milestones for a project
 export async function GET(
@@ -7,6 +7,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const supabase = await createServerClient();
         const { id: projectId } = await params;
 
         const {
@@ -41,6 +42,7 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const supabase = await createServerClient();
         const { id: projectId } = await params;
 
         const {

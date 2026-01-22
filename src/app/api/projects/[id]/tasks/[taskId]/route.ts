@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase-server";
 
 // PATCH update task
 export async function PATCH(
@@ -7,6 +7,7 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
     try {
+        const supabase = await createServerClient();
         const { taskId } = await params;
 
         const {
@@ -58,6 +59,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
     try {
+        const supabase = await createServerClient();
         const { taskId } = await params;
 
         const {
