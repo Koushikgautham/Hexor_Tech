@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Sun, Moon, ArrowLeft } from "lucide-react";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "../../../contexts/AuthContext";
 
 export default function AuthLayout({
     children,

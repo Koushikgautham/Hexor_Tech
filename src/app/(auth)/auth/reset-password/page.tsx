@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, Loader2, Check, CheckCircle2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "../../../../../contexts/AuthContext";
 import Link from "next/link";
 
 const resetPasswordSchema = z
@@ -183,8 +183,8 @@ export default function ResetPasswordPage() {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.05 }}
                                         className={`flex items-center gap-2 text-xs ${req.regex.test(password)
-                                                ? "text-green-500"
-                                                : "text-muted-foreground"
+                                            ? "text-green-500"
+                                            : "text-muted-foreground"
                                             }`}
                                     >
                                         <Check

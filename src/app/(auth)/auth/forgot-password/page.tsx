@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "../../../../../contexts/AuthContext";
 
 const forgotPasswordSchema = z.object({
     email: z.string().email("Please enter a valid email address"),

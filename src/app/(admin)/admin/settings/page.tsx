@@ -90,8 +90,8 @@ export default function SettingsPage() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl whitespace-nowrap transition-all ${activeTab === tab.id
-                                    ? "bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                                 }`}
                         >
                             <tab.icon className="w-5 h-5" />
@@ -398,8 +398,8 @@ function SecuritySettings({
                                     <div
                                         key={index}
                                         className={`flex items-center gap-2 text-xs ${req.regex.test(password)
-                                                ? "text-green-500"
-                                                : "text-muted-foreground"
+                                            ? "text-green-500"
+                                            : "text-muted-foreground"
                                             }`}
                                     >
                                         <Check
@@ -632,8 +632,8 @@ function AppearanceSettings({
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setTheme(option.id)}
                             className={`flex flex-col items-center gap-3 p-4 rounded-xl border transition-all ${theme === option.id
-                                    ? "border-primary bg-primary/10"
-                                    : "border-border hover:border-primary/50"
+                                ? "border-primary bg-primary/10"
+                                : "border-border hover:border-primary/50"
                                 }`}
                         >
                             <option.icon
