@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
                 tasks (
                     id,
                     status,
-                    progress
+                    progress,
+                    assigned_to,
+                    assigned_user:profiles!tasks_assigned_to_fkey (
+                        id,
+                        full_name,
+                        email,
+                        avatar_url
+                    )
                 )
             `
             )
