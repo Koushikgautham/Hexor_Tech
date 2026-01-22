@@ -1,19 +1,19 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+// DEPRECATED: Use @/lib/supabase/client or @/lib/supabase/server instead
+// This file is kept for backward compatibility only
+
+import { createClient as createBrowserClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Create supabase client only if credentials are provided
-// This prevents build errors when env vars are not set
+// Legacy client - use createClient() from @/lib/supabase/client instead
 let supabase: SupabaseClient;
 
 if (supabaseUrl && supabaseAnonKey) {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 } else {
-    // Create a mock client for build time
-    // This will be replaced with real client at runtime
     console.warn('Supabase credentials not found. Auth features will not work.');
-    supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+    supabase = createBrowserClient('https://placeholder.supabase.co', 'placeholder-key');
 }
 
 export { supabase };
@@ -28,7 +28,7 @@ export const createAdminClient = () => {
         return null;
     }
 
-    return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    return createBrowserClient(supabaseUrl, supabaseServiceRoleKey, {
         auth: {
             autoRefreshToken: false,
             persistSession: false,

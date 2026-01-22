@@ -85,6 +85,7 @@ interface User {
 export default function ProjectsPage() {
     const { profile } = useAuth();
     const [projects, setProjects] = React.useState<Project[]>([]);
+    const [adminUsers, setAdminUsers] = React.useState<User[]>([]);
     const [filter, setFilter] = React.useState<"all" | "current" | "finished">("all");
     const [showModal, setShowModal] = React.useState<"add-project" | "edit-project" | "view-project" | null>(null);
     const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
@@ -108,8 +109,24 @@ export default function ProjectsPage() {
         }
     };
 
+    // Fetch admin users for task assignment
+    const fetchAdminUsers = async () => {
+        try {
+            const response = await fetch("/api/admin/team");
+            if (response.ok) {
+                const data = await response.json();
+                setAdminUsers(data);
+            } else {
+                console.error("Failed to fetch admin users");
+            }
+        } catch (error) {
+            console.error("Error fetching admin users:", error);
+        }
+    };
+
     React.useEffect(() => {
         fetchProjects();
+        fetchAdminUsers();
     }, []);
 
     const filteredProjects = React.useMemo(() => {
@@ -751,7 +768,7 @@ function ProjectDetails({
         try {
             const [projectRes, usersRes] = await Promise.all([
                 fetch(`/api/projects/${project.id}`),
-                fetch("/api/admin/users"),
+                fetch("/api/admin/team"),
             ]);
 
             if (projectRes.ok) {
