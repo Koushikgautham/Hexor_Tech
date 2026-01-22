@@ -122,3 +122,69 @@ CREATE TRIGGER update_tasks_updated_at
   BEFORE UPDATE ON tasks
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- Milestones table
+CREATE TABLE milestones (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  due_date DATE,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security for milestones
+ALTER TABLE milestones ENABLE ROW LEVEL SECURITY;
+
+-- Policies for milestones
+CREATE POLICY "Admins can view all milestones"
+  ON milestones FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can create milestones"
+  ON milestones FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can update milestones"
+  ON milestones FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can delete milestones"
+  ON milestones FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE TRIGGER update_milestones_updated_at
+  BEFORE UPDATE ON milestones
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Add foreign key constraint name for better error handling
+ALTER TABLE tasks ADD CONSTRAINT tasks_assigned_to_fkey 
+  FOREIGN KEY (assigned_to) REFERENCES profiles(id) ON DELETE SET NULL;

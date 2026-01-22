@@ -32,8 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch user profile from database
     const fetchProfile = async (userId: string) => {
         try {
-            console.log("Fetching profile for user ID:", userId);
-
             const { data, error } = await supabase
                 .from("profiles")
                 .select("*")
@@ -42,11 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (error) {
                 console.error("Error fetching profile:", error);
-                console.error("User ID attempted:", userId);
+                console.error("User ID:", userId);
+                console.error("Error details:", JSON.stringify(error, null, 2));
                 return null;
             }
 
-            console.log("Profile fetched successfully:", data);
             return data as UserProfile;
         } catch (error) {
             console.error("Exception fetching profile:", error);
@@ -98,16 +96,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Sign in with email and password
     const signIn = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { error, data } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        if (!error) {
+            if (error) {
+                console.error("Sign in error:", error);
+                return { error };
+            }
+
+            // Wait for profile to be fetched
+            if (data.user) {
+                const profileData = await fetchProfile(data.user.id);
+                
+                if (!profileData) {
+                    console.error("Profile not found for user:", data.user.id);
+                    return { 
+                        error: { 
+                            message: "Profile not found. Please contact support.",
+                            name: "ProfileNotFound",
+                            status: 404
+                        } as any 
+                    };
+                }
+                
+                setProfile(profileData);
+            }
+
             router.push("/admin/dashboard");
+            return { error: null };
+        } catch (err) {
+            console.error("Sign in exception:", err);
+            return { 
+                error: { 
+                    message: "Failed to sign in. Please try again.",
+                    name: "SignInError",
+                    status: 500
+                } as any
+            };
         }
-
-        return { error };
     };
 
     // Sign up with email and password
