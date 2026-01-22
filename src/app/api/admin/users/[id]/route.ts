@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase';
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const adminClient = createAdminClient();
@@ -15,7 +15,7 @@ export async function DELETE(
             );
         }
 
-        const userId = params.id;
+        const { id: userId } = await params;
 
         // Delete user from auth (this will cascade delete the profile due to foreign key)
         const { error } = await adminClient.auth.admin.deleteUser(userId);
