@@ -139,6 +139,14 @@ export default function NewLoginPage() {
                     >
                         {isSubmitting ? "Signing in..." : "Sign In"}
                     </button>
+
+                    <button
+                        type="button"
+                        onClick={() => window.location.href = "/"}
+                        style={styles.secondaryButton}
+                    >
+                        Go to Website
+                    </button>
                 </form>
             </div>
         </div>
@@ -209,6 +217,16 @@ const styles: Record<string, React.CSSProperties> = {
         fontSize: "16px",
         fontWeight: "600",
         marginTop: "10px",
+    },
+    secondaryButton: {
+        backgroundColor: "transparent",
+        color: "#888888",
+        border: "1px solid #444444",
+        borderRadius: "8px",
+        padding: "14px 20px",
+        fontSize: "16px",
+        cursor: "pointer",
+        marginTop: "12px",
     },
     error: {
         backgroundColor: "#331111",
