@@ -37,10 +37,18 @@ export default function AdminLayout({
         // Only redirect once
         if (hasRedirected) return;
 
-        // If no user or not admin, redirect to login
-        if (!user || !isAdmin) {
+        // If no user, redirect to login
+        if (!user) {
             setHasRedirected(true);
-            window.location.href = "/auth/login";
+            window.location.href = "/auth-login";
+            return;
+        }
+
+        // If user exists but not admin, redirect to unauthorized
+        if (!isAdmin) {
+            setHasRedirected(true);
+            window.location.href = "/auth-unauthorized";
+            return;
         }
     }, [user, isAdmin, isLoading, hasRedirected]);
 
