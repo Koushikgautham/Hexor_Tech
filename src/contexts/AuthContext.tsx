@@ -220,9 +220,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.log("✅ Redirecting to ADMIN dashboard");
                 window.location.href = "/admin/dashboard";
             } else {
-                console.log("❌ Not admin, redirecting to HOME page");
+                console.log("❌ Not admin, redirecting to UNAUTHORIZED page");
                 console.log("   Profile was:", userProfile);
-                window.location.href = "/";
+                window.location.href = "/auth-unauthorized";
             }
         }
 
@@ -262,7 +262,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setProfile(null);
         // Use hard redirect to ensure cookies are properly cleared
-        window.location.href = "/auth/login";
+        window.location.href = "/auth-login";
     }, []);
 
     // Reset password (sends email)
