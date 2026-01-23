@@ -15,7 +15,8 @@
  * - Singleton ensures ONE source of truth
  */
 
-import { createBrowserClient, SupabaseClient } from "@supabase/ssr";
+import { createBrowserClient } from "@supabase/ssr";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 // Singleton instance - created once, reused everywhere
 let browserClient: SupabaseClient | null = null;

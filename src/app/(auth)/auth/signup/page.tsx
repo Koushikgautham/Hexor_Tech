@@ -8,11 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, Loader2, Check } from "lucide-react";
-<<<<<<< Updated upstream
-import { useAuth } from "../../../../contexts/AuthContext";
-=======
 import { useAuth } from "@/contexts/AuthContext";
->>>>>>> Stashed changes
 
 const signupSchema = z
     .object({

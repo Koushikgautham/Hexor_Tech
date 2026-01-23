@@ -22,7 +22,11 @@ import {
     AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, UserProfile, UserRole } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+import { UserProfile, UserRole } from "@/lib/auth/types";
+
+// Create client instance for this page
+const supabase = createClient();
 
 // Mock data for demonstration - in production, this would come from Supabase
 const mockUsers: UserProfile[] = [
@@ -328,8 +332,8 @@ export default function UsersPage() {
                                     <td className="px-6 py-4">
                                         <span
                                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.role === "admin"
-                                                    ? "bg-primary/10 text-primary"
-                                                    : "bg-secondary text-muted-foreground"
+                                                ? "bg-primary/10 text-primary"
+                                                : "bg-secondary text-muted-foreground"
                                                 }`}
                                         >
                                             {user.role === "admin" && (
@@ -341,8 +345,8 @@ export default function UsersPage() {
                                     <td className="px-6 py-4">
                                         <span
                                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.is_active
-                                                    ? "bg-green-500/10 text-green-500"
-                                                    : "bg-red-500/10 text-red-500"
+                                                ? "bg-green-500/10 text-green-500"
+                                                : "bg-red-500/10 text-red-500"
                                                 }`}
                                         >
                                             {user.is_active ? (
@@ -580,8 +584,8 @@ export default function UsersPage() {
                                             onClick={() => handleChangeRole("admin")}
                                             disabled={isLoading || selectedUser.role === "admin"}
                                             className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-colors ${selectedUser.role === "admin"
-                                                    ? "border-primary bg-primary/10"
-                                                    : "border-border hover:border-primary/50"
+                                                ? "border-primary bg-primary/10"
+                                                : "border-border hover:border-primary/50"
                                                 }`}
                                         >
                                             <Shield className="w-5 h-5 text-primary" />
@@ -599,8 +603,8 @@ export default function UsersPage() {
                                             onClick={() => handleChangeRole("user")}
                                             disabled={isLoading || selectedUser.role === "user"}
                                             className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-colors ${selectedUser.role === "user"
-                                                    ? "border-primary bg-primary/10"
-                                                    : "border-border hover:border-primary/50"
+                                                ? "border-primary bg-primary/10"
+                                                : "border-border hover:border-primary/50"
                                                 }`}
                                         >
                                             <User className="w-5 h-5 text-muted-foreground" />

@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
-import { User, Session, AuthError } from "@supabase/supabase-js";
+import { User, Session, AuthError, AuthChangeEvent } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { UserProfile, UserRole } from "@/lib/supabase";
+import { UserProfile, UserRole } from "@/lib/auth/types";
 
 interface AuthContextType {
     user: User | null;
@@ -33,17 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Track initialization to prevent double-fetching
     const isInitialized = useRef(false);
-    const isFetchingProfile = useRef(false);
-
     // Fetch user profile from database
     const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
-        // Prevent concurrent fetches
-        if (isFetchingProfile.current) {
-            return null;
-        }
-
-        isFetchingProfile.current = true;
-
         try {
             const { data, error } = await supabase
                 .from("profiles")
@@ -60,8 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error("Exception fetching profile:", error);
             return null;
-        } finally {
-            isFetchingProfile.current = false;
         }
     }, []);
 
@@ -118,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+        } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, newSession: Session | null) => {
             if (!mounted) return;
 
             // Only handle actual changes
@@ -164,12 +153,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("🔐 Login successful for user:", data.user.id);
             let userProfile = await fetchProfile(data.user.id);
 
-            // Auto-create profile if missing (self-healing)
-            if (!userProfile) {
-                console.log("Profile missing, creating default profile via API...");
+            // Auto-create profile if missing, or fix role if it's the admin user (self-healing)
+            const isRescueAdmin = email === 'abishekpechiappan@gmail.com';
 
-                // Check if this should be an admin (Hardcoded heuristic for 'abishekpechiappan@gmail.com')
-                const isRescueAdmin = email === 'abishekpechiappan@gmail.com';
+            if (!userProfile || (isRescueAdmin && userProfile?.role !== 'admin')) {
+                console.log("Profile missing or role incorrect, fixing via API...");
+
                 const role = isRescueAdmin ? 'admin' : 'user';
 
                 try {
@@ -190,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     const result = await response.json();
 
                     if (!response.ok) {
-                        console.error("Failed to create profile via API:", result.error);
+                        console.error("Failed to fix profile via API:", result.error);
                     } else {
                         console.log("Created/Fixed profile via API:", result.message);
                         // Re-fetch profile

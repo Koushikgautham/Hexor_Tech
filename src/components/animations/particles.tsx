@@ -15,15 +15,28 @@ export function Particles({
   quantity = 50,
   color = "oklch(0.577 0.245 16.439)",
 }: ParticlesProps) {
-  const particles = React.useMemo(() => {
-    return Array.from({ length: quantity }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 3 + 1,
-      duration: Math.random() * 20 + 10,
-      delay: Math.random() * 5,
-    }));
+  const [particles, setParticles] = React.useState<
+    Array<{
+      id: number;
+      x: number;
+      y: number;
+      size: number;
+      duration: number;
+      delay: number;
+    }>
+  >([]);
+
+  React.useEffect(() => {
+    setParticles(
+      Array.from({ length: quantity }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 3 + 1,
+        duration: Math.random() * 20 + 10,
+        delay: Math.random() * 5,
+      }))
+    );
   }, [quantity]);
 
   return (

@@ -8,11 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, Loader2, Check, CheckCircle2 } from "lucide-react";
-<<<<<<< Updated upstream
-import { useAuth } from "../../../../contexts/AuthContext";
-=======
 import { useAuth } from "@/contexts/AuthContext";
->>>>>>> Stashed changes
 import Link from "next/link";
 
 const resetPasswordSchema = z

@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 export default function DebugPage() {
     const [status, setStatus] = React.useState<any>(null);
@@ -76,7 +78,7 @@ export default function DebugPage() {
                 <div className="mt-8 space-y-4">
                     <div className="bg-card border border-border rounded-xl p-6">
                         <h2 className="text-xl font-semibold mb-4">Quick Fixes:</h2>
-                        
+
                         <div className="space-y-3">
                             <div>
                                 <h3 className="font-medium text-primary mb-2">1. Create Profile Table</h3>

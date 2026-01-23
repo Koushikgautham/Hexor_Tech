@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 interface Milestone {
     id: string;
@@ -283,8 +283,8 @@ export default function ProjectsPage() {
                         key={status}
                         onClick={() => setFilter(status)}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${filter === status
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                             }`}
                     >
                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -479,8 +479,8 @@ function ProjectCard({
                 </div>
                 <span
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium ${project.status === "current"
-                            ? "bg-orange-500/10 text-orange-500"
-                            : "bg-green-500/10 text-green-500"
+                        ? "bg-orange-500/10 text-orange-500"
+                        : "bg-green-500/10 text-green-500"
                         }`}
                 >
                     {project.status === "current" ? "In Progress" : "Completed"}
@@ -920,22 +920,20 @@ function ProjectDetails({
                     <div className="flex gap-2 mb-4">
                         <button
                             onClick={() => setActiveTab("tasks")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeTab === "tasks"
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "tasks"
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                            }`}
+                                }`}
                         >
                             <ListTodo className="w-4 h-4 inline mr-2" />
                             Tasks ({tasks.length})
                         </button>
                         <button
                             onClick={() => setActiveTab("milestones")}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeTab === "milestones"
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "milestones"
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                            }`}
+                                }`}
                         >
                             <Target className="w-4 h-4 inline mr-2" />
                             Milestones ({milestones.length})
@@ -1191,9 +1189,8 @@ function TaskItem({
                         <StatusIcon className="w-4 h-4 text-muted-foreground" />
                         <h4 className="font-medium text-foreground">{task.title}</h4>
                         <span
-                            className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                priorityColors[task.priority]
-                            }`}
+                            className={`px-2 py-0.5 rounded text-xs font-medium ${priorityColors[task.priority]
+                                }`}
                         >
                             {task.priority}
                         </span>

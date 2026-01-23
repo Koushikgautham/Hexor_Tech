@@ -29,8 +29,6 @@ export default function AdminLayout({
         setMounted(true);
     }, []);
 
-<<<<<<< Updated upstream
-=======
     // Redirect if not admin or not logged in - but only once loading is complete
     React.useEffect(() => {
         // Wait until loading is complete before making decisions
@@ -46,7 +44,6 @@ export default function AdminLayout({
         }
     }, [user, isAdmin, isLoading, hasRedirected]);
 
->>>>>>> Stashed changes
     // Show loading while checking auth
     if (isLoading) {
         return (
@@ -63,11 +60,6 @@ export default function AdminLayout({
         );
     }
 
-<<<<<<< Updated upstream
-    // If not authenticated or not admin, show nothing - middleware will redirect
-    if (!user || !isAdmin) {
-        return null;
-=======
     // Show loading while waiting for redirect (user not authorized)
     if (!user || !isAdmin) {
         return (
@@ -82,7 +74,6 @@ export default function AdminLayout({
                 </motion.div>
             </div>
         );
->>>>>>> Stashed changes
     }
 
     return (

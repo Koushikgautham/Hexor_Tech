@@ -39,7 +39,7 @@ import React, {
     useMemo,
 } from "react";
 
-import { User, Session } from "@supabase/supabase-js";
+import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/auth/browser-client";
 import type { AuthContextType, UserProfile, SignInResult } from "@/lib/auth/types";
 
@@ -150,7 +150,7 @@ export function NewAuthProvider({ children }: { children: React.ReactNode }) {
 
         // Listen for auth state changes (sign in, sign out, token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, newSession) => {
+            async (event: AuthChangeEvent, newSession: Session | null) => {
                 if (!mounted) return;
 
                 console.log("[NewAuth] Auth event:", event);
