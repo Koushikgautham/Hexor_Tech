@@ -36,11 +36,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch user profile from database
     const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
         try {
-            const { data, error } = await supabase
+            // Timeout after 10 seconds to prevent hanging
+            const fetchPromise = supabase
                 .from("profiles")
                 .select("*")
                 .eq("id", userId)
                 .single();
+
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+            );
+
+            const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
             if (error) {
                 console.error("Error fetching profile:", error);
@@ -53,6 +60,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return null;
         }
     }, []);
+
+    // SAFETY VALVE: Force loading to stop after 15 seconds max
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isLoading) {
+                console.warn("⚠️ Auth loading took too long, forcing completion");
+                setIsLoading(false);
+            }
+        }, 15000);
+        return () => clearTimeout(timer);
+    }, [isLoading]);
 
     // Refresh profile data
     const refreshProfile = useCallback(async () => {
