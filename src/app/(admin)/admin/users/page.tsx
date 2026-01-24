@@ -20,6 +20,7 @@ import {
     X,
     User,
     AlertTriangle,
+    Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -340,6 +341,9 @@ export default function UsersPage() {
                                                 <Shield className="w-3 h-3" />
                                             )}
                                             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                                            {user.is_scrum_master && (
+                                                <Crown className="w-3 h-3 text-amber-500 ml-1" />
+                                            )}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
@@ -419,6 +423,57 @@ export default function UsersPage() {
                                                                 </>
                                                             )}
                                                         </button>
+                                                        {user.role === "admin" && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    setActionMenuOpen(null);
+                                                                    try {
+                                                                        if (user.is_scrum_master) {
+                                                                            // Remove Scrum Master
+                                                                            const response = await fetch(`/api/admin/scrum-master?userId=${user.id}`, {
+                                                                                method: "DELETE",
+                                                                            });
+                                                                            if (response.ok) {
+                                                                                setUsers((prev) =>
+                                                                                    prev.map((u) =>
+                                                                                        u.id === user.id ? { ...u, is_scrum_master: false } : u
+                                                                                    )
+                                                                                );
+                                                                                toast.success(`Removed Scrum Master role from ${user.full_name}`);
+                                                                            } else {
+                                                                                toast.error("Failed to remove Scrum Master role");
+                                                                            }
+                                                                        } else {
+                                                                            // Set as Scrum Master
+                                                                            const response = await fetch("/api/admin/scrum-master", {
+                                                                                method: "POST",
+                                                                                headers: { "Content-Type": "application/json" },
+                                                                                body: JSON.stringify({ userId: user.id }),
+                                                                            });
+                                                                            if (response.ok) {
+                                                                                // Update all users - remove scrum master from others, add to this one
+                                                                                setUsers((prev) =>
+                                                                                    prev.map((u) => ({
+                                                                                        ...u,
+                                                                                        is_scrum_master: u.id === user.id,
+                                                                                    }))
+                                                                                );
+                                                                                toast.success(`${user.full_name} is now the Scrum Master`);
+                                                                            } else {
+                                                                                toast.error("Failed to set Scrum Master");
+                                                                            }
+                                                                        }
+                                                                    } catch (error) {
+                                                                        toast.error("Error updating Scrum Master");
+                                                                        console.error(error);
+                                                                    }
+                                                                }}
+                                                                className={`flex items-center gap-2 w-full px-4 py-3 text-sm transition-colors ${user.is_scrum_master ? "text-amber-500 hover:bg-amber-500/10" : "hover:bg-secondary"}`}
+                                                            >
+                                                                <Crown className="w-4 h-4" />
+                                                                {user.is_scrum_master ? "Remove Scrum Master" : "Set as Scrum Master"}
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={() => {
                                                                 window.location.href = `mailto:${user.email}`;

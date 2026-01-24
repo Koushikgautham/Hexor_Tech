@@ -10,9 +10,10 @@ import {
     Moon,
     ChevronDown,
     Shield,
-    Bell,
+    Crown,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationDropdown } from "@/components/admin/NotificationDropdown";
 
 export default function AdminLayout({
     children,
@@ -145,11 +146,16 @@ export default function AdminLayout({
                                 <span className="text-xs font-medium text-primary">Admin</span>
                             </div>
 
+                            {/* Scrum Master Badge */}
+                            {profile?.is_scrum_master && (
+                                <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 rounded-lg">
+                                    <Crown className="w-4 h-4 text-amber-500" />
+                                    <span className="text-xs font-medium text-amber-500">Scrum Master</span>
+                                </div>
+                            )}
+
                             {/* Notifications */}
-                            <button className="relative p-2 hover:bg-secondary rounded-lg transition-colors">
-                                <Bell className="w-5 h-5 text-muted-foreground" />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-                            </button>
+                            <NotificationDropdown isScrumMaster={profile?.is_scrum_master} />
 
                             {/* Theme Toggle */}
                             {mounted && (

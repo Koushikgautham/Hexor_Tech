@@ -108,9 +108,49 @@ export async function POST(
             return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
         }
 
+        // Create notification for Scrum Master if task has an assignee
+        if (task && assigned_to) {
+            try {
+                // Find the Scrum Master (excluding the current user if they are the Scrum Master)
+                const { data: scrumMaster } = await supabase
+                    .from("profiles")
+                    .select("id, full_name")
+                    .eq("is_scrum_master", true)
+                    .neq("id", user.id)
+                    .single();
+
+                if (scrumMaster) {
+                    // Get project name for the notification
+                    const { data: project } = await supabase
+                        .from("projects")
+                        .select("name")
+                        .eq("id", projectId)
+                        .single();
+
+                    // Get the assigned user's name
+                    const assignedName = task.assigned_user?.full_name || "a team member";
+
+                    // Create notification for Scrum Master
+                    await supabase.from("notifications").insert({
+                        user_id: scrumMaster.id,
+                        type: "task_assigned",
+                        title: `New Task Assigned: ${title}`,
+                        message: `Task "${title}" was assigned to ${assignedName} in project "${project?.name || "Unknown"}"`,
+                        task_id: task.id,
+                        project_id: projectId,
+                        created_by: user.id,
+                    });
+                }
+            } catch (notifError) {
+                // Don't fail the task creation if notification fails
+                console.error("Error creating notification:", notifError);
+            }
+        }
+
         return NextResponse.json(task);
     } catch (error) {
         console.error("Error in POST /api/projects/[id]/tasks:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
+

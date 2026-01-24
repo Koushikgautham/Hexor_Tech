@@ -262,7 +262,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setProfile(null);
         // Use hard redirect to ensure cookies are properly cleared
-        window.location.href = "/";
+        window.location.href = "/auth-login";
     }, []);
 
     // Reset password (sends email)
