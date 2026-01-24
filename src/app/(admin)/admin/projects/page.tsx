@@ -21,10 +21,14 @@ import {
     CheckSquare,
     Square,
     AlertCircle,
+    FileText,
+    FileSpreadsheet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
+import { ProjectDocuments } from "@/components/admin/ProjectDocuments";
+import { ProjectSheets } from "@/components/admin/ProjectSheets";
 
 interface Milestone {
     id: string;
@@ -753,7 +757,7 @@ function ProjectDetails({
     onClose: () => void;
     onRefresh: () => void;
 }) {
-    const [activeTab, setActiveTab] = React.useState<"tasks" | "milestones">("tasks");
+    const [activeTab, setActiveTab] = React.useState<"tasks" | "milestones" | "documents" | "sheets">("tasks");
     const [tasks, setTasks] = React.useState<Task[]>([]);
     const [milestones, setMilestones] = React.useState<any[]>([]);
     const [users, setUsers] = React.useState<any[]>([]);
@@ -921,8 +925,8 @@ function ProjectDetails({
                         <button
                             onClick={() => setActiveTab("tasks")}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "tasks"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                                 }`}
                         >
                             <ListTodo className="w-4 h-4 inline mr-2" />
@@ -931,12 +935,32 @@ function ProjectDetails({
                         <button
                             onClick={() => setActiveTab("milestones")}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "milestones"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                                 }`}
                         >
                             <Target className="w-4 h-4 inline mr-2" />
                             Milestones ({milestones.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("documents")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "documents"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                }`}
+                        >
+                            <FileText className="w-4 h-4 inline mr-2" />
+                            Documents
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("sheets")}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "sheets"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                }`}
+                        >
+                            <FileSpreadsheet className="w-4 h-4 inline mr-2" />
+                            Sheets
                         </button>
                     </div>
 
@@ -1005,6 +1029,22 @@ function ProjectDetails({
                                 <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                 <p className="text-sm">Milestone tracking coming soon!</p>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Documents Tab */}
+                    {activeTab === "documents" && (
+                        <div className="space-y-4">
+                            <h3 className="font-semibold text-foreground">Project Documents</h3>
+                            <ProjectDocuments projectId={project.id} />
+                        </div>
+                    )}
+
+                    {/* Sheets Tab */}
+                    {activeTab === "sheets" && (
+                        <div className="space-y-4">
+                            <h3 className="font-semibold text-foreground">Google Sheets</h3>
+                            <ProjectSheets projectId={project.id} />
                         </div>
                     )}
                 </div>
