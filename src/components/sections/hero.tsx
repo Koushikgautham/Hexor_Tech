@@ -26,8 +26,10 @@ const clientLogos = [
 export function Hero() {
   return (
     // ENHANCEMENT: Added id for scroll progress navigation
-    <AuroraBackground id="hero" className="min-h-screen pt-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <AuroraBackground id="hero" className="min-h-screen pt-20 pb-32 relative">
+      {/* Gradient fade to black at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-black via-black/80 to-transparent z-[1] pointer-events-none" />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex min-h-[calc(100vh-5rem)] flex-col items-center justify-center text-center">
           {/* Badge */}
           <motion.div

@@ -1,7 +1,11 @@
 export { Hero } from "./hero";
 export { ServicesOverview } from "./services-overview";
+export { Services } from "./services";
 export { Stats } from "./stats";
 export { PortfolioPreview } from "./portfolio-preview";
 export { Testimonials } from "./testimonials";
 export { Process } from "./process";
 export { CTA } from "./cta";
+export { Team } from "./team";
+export { Projects } from "./projects";
+export { Contact } from "./contact";

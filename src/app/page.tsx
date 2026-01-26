@@ -1,23 +1,40 @@
 import {
   Hero,
-  ServicesOverview,
+  Services,
   Stats,
-  PortfolioPreview,
-  Testimonials,
   Process,
-  CTA,
+  Projects,
+  Team,
+  Testimonials,
+  Contact,
 } from "@/components/sections";
 
 export default function Home() {
   return (
     <>
+      {/* Hero - Main intro and hook */}
       <Hero />
-      <ServicesOverview />
+      
+      {/* Services - What we do (detailed) */}
+      <Services />
+      
+      {/* Stats - Credibility numbers */}
       <Stats />
+      
+      {/* Process - How we work */}
       <Process />
-      <PortfolioPreview />
+      
+      {/* Projects - Our work with CardSwap animation */}
+      <Projects />
+      
+      {/* Team - Who we are */}
+      <Team />
+      
+      {/* Testimonials - Social proof */}
       <Testimonials />
-      <CTA />
+      
+      {/* Contact - Get in touch */}
+      <Contact />
     </>
   );
 }

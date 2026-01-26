@@ -14,12 +14,29 @@ import { cn } from "@/lib/utils";
 import { gsap } from "gsap";
 
 const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/services", label: "Services" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+  { href: "#hero", label: "Home" },
+  { href: "#services", label: "Services" },
+  { href: "#projects", label: "Projects" },
+  { href: "#team", label: "Team" },
+  { href: "#contact", label: "Contact" },
 ];
+
+// Smooth scroll handler for anchor links
+const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  e.preventDefault();
+  const targetId = href.replace("#", "");
+  const element = document.getElementById(targetId);
+  if (element) {
+    const headerOffset = -30;
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+    
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth"
+    });
+  }
+};
 
 export function Header() {
   const pathname = usePathname();
@@ -29,6 +46,8 @@ export function Header() {
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  const [activeSection, setActiveSection] = React.useState("hero");
+  const [isCursorNearTop, setIsCursorNearTop] = React.useState(false);
   const lastScrollY = React.useRef(0);
   const transitionTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -39,6 +58,35 @@ export function Header() {
 
   React.useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Track active section with IntersectionObserver
+  React.useEffect(() => {
+    const sectionIds = navItems.map(item => item.href.replace("#", ""));
+    const observers: IntersectionObserver[] = [];
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setActiveSection(id);
+            }
+          });
+        },
+        { rootMargin: "-40% 0px -40% 0px", threshold: 0 }
+      );
+
+      observer.observe(element);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+    };
   }, []);
 
   // Added: GSAP setup for Reactbits-style pill hover animation
@@ -128,6 +176,55 @@ export function Header() {
     });
   };
 
+  // Mouse proximity detection - show navbar when cursor is near top
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const PROXIMITY_THRESHOLD = 100; // Show navbar when cursor is within 100px of top
+      setIsCursorNearTop(e.clientY < PROXIMITY_THRESHOLD);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  // Show/hide navbar based on cursor proximity
+  React.useEffect(() => {
+    const currentScrollY = window.scrollY;
+    
+    // If cursor is near top and we're scrolled down, show navbar
+    if (isCursorNearTop && currentScrollY > 80) {
+      if (isHidden) {
+        setIsTransitioning(true);
+        setIsHidden(false);
+        
+        if (transitionTimeoutRef.current) {
+          clearTimeout(transitionTimeoutRef.current);
+        }
+        
+        transitionTimeoutRef.current = setTimeout(() => {
+          setIsTransitioning(false);
+        }, 350);
+      }
+    }
+    // If cursor moves away from top and we're scrolled down, hide navbar
+    else if (!isCursorNearTop && currentScrollY > lastScrollY.current && currentScrollY > 80) {
+      if (!isHidden) {
+        setIsTransitioning(true);
+        setIsHidden(true);
+        
+        if (transitionTimeoutRef.current) {
+          clearTimeout(transitionTimeoutRef.current);
+        }
+        
+        transitionTimeoutRef.current = setTimeout(() => {
+          setIsTransitioning(false);
+        }, 350);
+      }
+    }
+  }, [isCursorNearTop, isHidden]);
+
   React.useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -140,8 +237,8 @@ export function Header() {
       let newHidden = wasHidden;
 
       if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
-        // Scrolling down & past threshold - hide
-        newHidden = true;
+        // Scrolling down & past threshold - hide (unless cursor is near top)
+        newHidden = !isCursorNearTop;
       } else {
         // Scrolling up - show
         newHidden = false;
@@ -173,7 +270,7 @@ export function Header() {
         clearTimeout(transitionTimeoutRef.current);
       }
     };
-  }, [isHidden]);
+  }, [isHidden, isCursorNearTop]);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -211,11 +308,12 @@ export function Header() {
           {/* Changed: Added GSAP Reactbits-style hover animation with expanding circle and text slide */}
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center rounded-full border border-border bg-card/80 p-1 shadow-sm backdrop-blur-sm md:flex">
             {navItems.map((item, index) => {
-              const isActive = pathname === item.href;
+              const isActive = activeSection === item.href.replace("#", "");
               return (
-                <Link
+                <a
                   key={item.href}
                   href={item.href}
+                  onClick={(e) => handleSmoothScroll(e, item.href)}
                   className={cn(
                     "relative overflow-hidden inline-flex items-center justify-center h-full px-5 py-2.5 rounded-full text-sm font-semibold cursor-pointer",
                     /* Changed: Base color uses card background */
@@ -259,7 +357,7 @@ export function Header() {
                       aria-hidden="true"
                     />
                   )}
-                </Link>
+                </a>
               );
             })}
           </nav>
@@ -308,7 +406,7 @@ export function Header() {
                 whileTap={{ scale: 0.98 }}
               >
                 <Button asChild className="rounded-full px-6">
-                  <Link href="/contact">Get Started</Link>
+                  <a href="#contact" onClick={(e) => handleSmoothScroll(e, "#contact")}>Get Started</a>
                 </Button>
               </motion.div>
             </div>
@@ -349,18 +447,21 @@ export function Header() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <Link
+                      <a
                         href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={(e) => {
+                          handleSmoothScroll(e, item.href);
+                          setIsMobileMenuOpen(false);
+                        }}
                         className={cn(
                           "block px-4 py-3 text-lg font-medium transition-colors",
-                          pathname === item.href
+                          activeSection === item.href.replace("#", "")
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
                         )}
                       >
                         {item.label}
-                      </Link>
+                      </a>
                     </motion.div>
                   ))}
                   <motion.div
@@ -370,12 +471,15 @@ export function Header() {
                     className="mt-4 px-4"
                   >
                     <Button asChild className="w-full rounded-full">
-                      <Link
-                        href="/contact"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                      <a
+                        href="#contact"
+                        onClick={(e) => {
+                          handleSmoothScroll(e, "#contact");
+                          setIsMobileMenuOpen(false);
+                        }}
                       >
                         Get Started
-                      </Link>
+                      </a>
                     </Button>
                   </motion.div>
                 </nav>
