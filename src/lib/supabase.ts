@@ -37,7 +37,7 @@ export const createAdminClient = () => {
 };
 
 // Type definitions for user roles
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'admin' | 'user' | 'client';
 
 export interface UserProfile {
     id: string;
@@ -48,4 +48,5 @@ export interface UserProfile {
     updated_at: string;
     avatar_url: string | null;
     is_active: boolean;
+    is_scrum_master?: boolean;
 }
