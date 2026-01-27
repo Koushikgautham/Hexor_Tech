@@ -11,8 +11,9 @@ import { User, Session } from "@supabase/supabase-js";
  * User roles in the system
  * - 'user': Regular user with limited access
  * - 'admin': Administrative user with full access
+ * - 'client': Client user who can view assigned projects
  */
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | "admin" | "client";
 
 /**
  * User profile stored in the 'profiles' table in Supabase

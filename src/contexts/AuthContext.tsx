@@ -219,8 +219,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (userProfile?.role === "admin") {
                 console.log("✅ Redirecting to ADMIN dashboard");
                 window.location.href = "/admin/dashboard";
+            } else if (userProfile?.role === "client") {
+                console.log("✅ Redirecting to CLIENT dashboard");
+                window.location.href = "/client/dashboard";
             } else {
-                console.log("❌ Not admin, redirecting to UNAUTHORIZED page");
+                console.log("❌ Not admin or client, redirecting to UNAUTHORIZED page");
                 console.log("   Profile was:", userProfile);
                 window.location.href = "/auth/login";
             }

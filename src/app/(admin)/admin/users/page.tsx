@@ -21,70 +21,17 @@ import {
     User,
     AlertTriangle,
     Crown,
+    Briefcase,
 } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { UserProfile, UserRole } from "@/lib/auth/types";
+import { createClient } from "@/lib/supabase/client";
 
 // Create client instance for this page
 const supabase = createClient();
 
-// Mock data for demonstration - in production, this would come from Supabase
-const mockUsers: UserProfile[] = [
-    {
-        id: "1",
-        email: "admin@hexora.com",
-        full_name: "Admin User",
-        role: "admin",
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-        avatar_url: null,
-        is_active: true,
-    },
-    {
-        id: "2",
-        email: "john@example.com",
-        full_name: "John Doe",
-        role: "user",
-        created_at: "2024-01-15T00:00:00Z",
-        updated_at: "2024-01-15T00:00:00Z",
-        avatar_url: null,
-        is_active: true,
-    },
-    {
-        id: "3",
-        email: "sarah@example.com",
-        full_name: "Sarah Smith",
-        role: "user",
-        created_at: "2024-02-01T00:00:00Z",
-        updated_at: "2024-02-01T00:00:00Z",
-        avatar_url: null,
-        is_active: true,
-    },
-    {
-        id: "4",
-        email: "mike@example.com",
-        full_name: "Mike Johnson",
-        role: "user",
-        created_at: "2024-02-15T00:00:00Z",
-        updated_at: "2024-02-15T00:00:00Z",
-        avatar_url: null,
-        is_active: false,
-    },
-    {
-        id: "5",
-        email: "alice@example.com",
-        full_name: "Alice Brown",
-        role: "user",
-        created_at: "2024-03-01T00:00:00Z",
-        updated_at: "2024-03-01T00:00:00Z",
-        avatar_url: null,
-        is_active: true,
-    },
-];
-
 export default function UsersPage() {
-    const [users, setUsers] = React.useState<UserProfile[]>(mockUsers);
+    const [users, setUsers] = React.useState<UserProfile[]>([]);
     const [searchQuery, setSearchQuery] = React.useState("");
     const [roleFilter, setRoleFilter] = React.useState<"all" | UserRole>("all");
     const [statusFilter, setStatusFilter] = React.useState<
@@ -104,8 +51,32 @@ export default function UsersPage() {
         | null
     >(null);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [isFetching, setIsFetching] = React.useState(true);
     const [currentPage, setCurrentPage] = React.useState(1);
     const usersPerPage = 10;
+
+    // Fetch users on mount
+    React.useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        setIsFetching(true);
+        try {
+            const response = await fetch("/api/admin/users");
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data.users || []);
+            } else {
+                toast.error("Failed to fetch users");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Error fetching users");
+        } finally {
+            setIsFetching(false);
+        }
+    };
 
     // Filter users based on search and filters
     const filteredUsers = React.useMemo(() => {
@@ -130,12 +101,16 @@ export default function UsersPage() {
         currentPage * usersPerPage
     );
 
+    // Reset pagination when filters change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, roleFilter, statusFilter]);
+
     // Admin Actions
     const handleResetPassword = async () => {
         if (!selectedUser) return;
         setIsLoading(true);
         try {
-            // In production, use Supabase Admin API to send reset email
             const { error } = await supabase.auth.resetPasswordForEmail(
                 selectedUser.email,
                 {
@@ -158,15 +133,24 @@ export default function UsersPage() {
         if (!selectedUser) return;
         setIsLoading(true);
         try {
-            // In production, update via Supabase
-            setUsers((prev) =>
-                prev.map((u) => (u.id === selectedUser.id ? { ...u, role: newRole } : u))
-            );
-            toast.success(
-                `${selectedUser.full_name}'s role changed to ${newRole}`
-            );
-            setShowModal(null);
-            setSelectedUser(null);
+            const response = await fetch(`/api/admin/users/${selectedUser.id}/role`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: newRole }),
+            });
+
+            if (response.ok) {
+                setUsers((prev) =>
+                    prev.map((u) => (u.id === selectedUser.id ? { ...u, role: newRole } : u))
+                );
+                toast.success(
+                    `${selectedUser.full_name}'s role changed to ${newRole}`
+                );
+                setShowModal(null);
+                setSelectedUser(null);
+            } else {
+                throw new Error("Failed to update role");
+            }
         } catch (error) {
             toast.error("Failed to change role");
             console.error(error);
@@ -178,15 +162,30 @@ export default function UsersPage() {
     const handleToggleStatus = async (user: UserProfile) => {
         setIsLoading(true);
         try {
-            // In production, update via Supabase
-            setUsers((prev) =>
-                prev.map((u) =>
-                    u.id === user.id ? { ...u, is_active: !u.is_active } : u
-                )
-            );
-            toast.success(
-                `${user.full_name} ${user.is_active ? "deactivated" : "activated"}`
-            );
+            // Using the status update API if it exists, otherwise defaulting to local update for UI
+            const newStatus = !user.is_active;
+            const response = await fetch(`/api/admin/users/${user.id}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ is_active: newStatus }),
+            });
+
+            if (response.ok) {
+                setUsers((prev) =>
+                    prev.map((u) =>
+                        u.id === user.id ? { ...u, is_active: newStatus } : u
+                    )
+                );
+                toast.success(
+                    `${user.full_name} ${newStatus ? "activated" : "deactivated"}`
+                );
+            } else {
+                // Determine if it was just because the route doesn't exist yet
+                // For now, we'll optimistically update if API fails (or implement route later)
+                // But ideally, we should implement the route.
+                // Assuming route exists based on previous file search showing `users/[id]/status/route.ts`
+                throw new Error("Failed to update status");
+            }
         } catch (error) {
             toast.error("Failed to update status");
             console.error(error);
@@ -200,11 +199,18 @@ export default function UsersPage() {
         if (!selectedUser) return;
         setIsLoading(true);
         try {
-            // In production, delete via Supabase Admin API
-            setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
-            toast.success(`${selectedUser.full_name} deleted successfully`);
-            setShowModal(null);
-            setSelectedUser(null);
+            const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+                toast.success(`${selectedUser.full_name} deleted successfully`);
+                setShowModal(null);
+                setSelectedUser(null);
+            } else {
+                throw new Error("Failed to delete user");
+            }
         } catch (error) {
             toast.error("Failed to delete user");
             console.error(error);
@@ -263,6 +269,7 @@ export default function UsersPage() {
                         <option value="all">All Roles</option>
                         <option value="admin">Admins</option>
                         <option value="user">Users</option>
+                        <option value="client">Clients</option>
                     </select>
                 </div>
 
@@ -281,229 +288,251 @@ export default function UsersPage() {
             </div>
 
             {/* Users Table */}
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-border bg-secondary/50">
-                                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
-                                    User
-                                </th>
-                                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
-                                    Role
-                                </th>
-                                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
-                                    Status
-                                </th>
-                                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
-                                    Joined
-                                </th>
-                                <th className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedUsers.map((user, index) => (
-                                <motion.tr
-                                    key={user.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors"
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                <span className="text-primary font-medium">
-                                                    {user.full_name?.charAt(0) ||
-                                                        user.email.charAt(0).toUpperCase()}
+            <div className="bg-card border border-border rounded-2xl overflow-hidden min-h-[400px]">
+                {isFetching ? (
+                    <div className="flex items-center justify-center h-[400px]">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-border bg-secondary/50">
+                                    <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
+                                        User
+                                    </th>
+                                    <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
+                                        Role
+                                    </th>
+                                    <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
+                                        Status
+                                    </th>
+                                    <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">
+                                        Joined
+                                    </th>
+                                    <th className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedUsers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="text-center py-12 text-muted-foreground">
+                                            No users found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    paginatedUsers.map((user, index) => (
+                                        <motion.tr
+                                            key={user.id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors"
+                                        >
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                        <span className="text-primary font-medium">
+                                                            {user.full_name?.charAt(0) ||
+                                                                user.email.charAt(0).toUpperCase()}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-foreground">
+                                                            {user.full_name || "No name"}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {user.email}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span
+                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.role === "admin"
+                                                            ? "bg-primary/10 text-primary"
+                                                            : user.role === "client"
+                                                                ? "bg-purple-500/10 text-purple-500"
+                                                                : "bg-secondary text-muted-foreground"
+                                                        }`}
+                                                >
+                                                    {user.role === "admin" && (
+                                                        <Shield className="w-3 h-3" />
+                                                    )}
+                                                    {user.role === "client" && (
+                                                        <Briefcase className="w-3 h-3" />
+                                                    )}
+                                                    {user.role === "user" && (
+                                                        <User className="w-3 h-3" />
+                                                    )}
+                                                    {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                                                    {user.is_scrum_master && (
+                                                        <Crown className="w-3 h-3 text-amber-500 ml-1" />
+                                                    )}
                                                 </span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-foreground">
-                                                    {user.full_name || "No name"}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {user.email}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span
-                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.role === "admin"
-                                                ? "bg-primary/10 text-primary"
-                                                : "bg-secondary text-muted-foreground"
-                                                }`}
-                                        >
-                                            {user.role === "admin" && (
-                                                <Shield className="w-3 h-3" />
-                                            )}
-                                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                                            {user.is_scrum_master && (
-                                                <Crown className="w-3 h-3 text-amber-500 ml-1" />
-                                            )}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span
-                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.is_active
-                                                ? "bg-green-500/10 text-green-500"
-                                                : "bg-red-500/10 text-red-500"
-                                                }`}
-                                        >
-                                            {user.is_active ? (
-                                                <CheckCircle2 className="w-3 h-3" />
-                                            ) : (
-                                                <XCircle className="w-3 h-3" />
-                                            )}
-                                            {user.is_active ? "Active" : "Inactive"}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                                        {new Date(user.created_at).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="relative flex justify-end">
-                                            <button
-                                                onClick={() =>
-                                                    setActionMenuOpen(
-                                                        actionMenuOpen === user.id ? null : user.id
-                                                    )
-                                                }
-                                                className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                                            >
-                                                <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                                            </button>
-
-                                            <AnimatePresence>
-                                                {actionMenuOpen === user.id && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, scale: 0.95 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        exit={{ opacity: 0, scale: 0.95 }}
-                                                        className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-xl shadow-lg z-10 overflow-hidden"
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span
+                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.is_active
+                                                        ? "bg-green-500/10 text-green-500"
+                                                        : "bg-red-500/10 text-red-500"
+                                                        }`}
+                                                >
+                                                    {user.is_active ? (
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                    ) : (
+                                                        <XCircle className="w-3 h-3" />
+                                                    )}
+                                                    {user.is_active ? "Active" : "Inactive"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-muted-foreground">
+                                                {new Date(user.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="relative flex justify-end">
+                                                    <button
+                                                        onClick={() =>
+                                                            setActionMenuOpen(
+                                                                actionMenuOpen === user.id ? null : user.id
+                                                            )
+                                                        }
+                                                        className="p-2 hover:bg-secondary rounded-lg transition-colors"
                                                     >
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedUser(user);
-                                                                setShowModal("reset-password");
-                                                                setActionMenuOpen(null);
-                                                            }}
-                                                            className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
-                                                        >
-                                                            <Key className="w-4 h-4" />
-                                                            Reset Password
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedUser(user);
-                                                                setShowModal("change-role");
-                                                                setActionMenuOpen(null);
-                                                            }}
-                                                            className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
-                                                        >
-                                                            <Shield className="w-4 h-4" />
-                                                            Change Role
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleToggleStatus(user)}
-                                                            className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
-                                                        >
-                                                            {user.is_active ? (
-                                                                <>
-                                                                    <ShieldOff className="w-4 h-4" />
-                                                                    Deactivate
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <CheckCircle2 className="w-4 h-4" />
-                                                                    Activate
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                        {user.role === "admin" && (
-                                                            <button
-                                                                onClick={async () => {
-                                                                    setActionMenuOpen(null);
-                                                                    try {
-                                                                        if (user.is_scrum_master) {
-                                                                            // Remove Scrum Master
-                                                                            const response = await fetch(`/api/admin/scrum-master?userId=${user.id}`, {
-                                                                                method: "DELETE",
-                                                                            });
-                                                                            if (response.ok) {
-                                                                                setUsers((prev) =>
-                                                                                    prev.map((u) =>
-                                                                                        u.id === user.id ? { ...u, is_scrum_master: false } : u
-                                                                                    )
-                                                                                );
-                                                                                toast.success(`Removed Scrum Master role from ${user.full_name}`);
-                                                                            } else {
-                                                                                toast.error("Failed to remove Scrum Master role");
-                                                                            }
-                                                                        } else {
-                                                                            // Set as Scrum Master
-                                                                            const response = await fetch("/api/admin/scrum-master", {
-                                                                                method: "POST",
-                                                                                headers: { "Content-Type": "application/json" },
-                                                                                body: JSON.stringify({ userId: user.id }),
-                                                                            });
-                                                                            if (response.ok) {
-                                                                                // Update all users - remove scrum master from others, add to this one
-                                                                                setUsers((prev) =>
-                                                                                    prev.map((u) => ({
-                                                                                        ...u,
-                                                                                        is_scrum_master: u.id === user.id,
-                                                                                    }))
-                                                                                );
-                                                                                toast.success(`${user.full_name} is now the Scrum Master`);
-                                                                            } else {
-                                                                                toast.error("Failed to set Scrum Master");
-                                                                            }
-                                                                        }
-                                                                    } catch (error) {
-                                                                        toast.error("Error updating Scrum Master");
-                                                                        console.error(error);
-                                                                    }
-                                                                }}
-                                                                className={`flex items-center gap-2 w-full px-4 py-3 text-sm transition-colors ${user.is_scrum_master ? "text-amber-500 hover:bg-amber-500/10" : "hover:bg-secondary"}`}
+                                                        <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                                                    </button>
+
+                                                    <AnimatePresence>
+                                                        {actionMenuOpen === user.id && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                                className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-xl shadow-lg z-10 overflow-hidden"
                                                             >
-                                                                <Crown className="w-4 h-4" />
-                                                                {user.is_scrum_master ? "Remove Scrum Master" : "Set as Scrum Master"}
-                                                            </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedUser(user);
+                                                                        setShowModal("reset-password");
+                                                                        setActionMenuOpen(null);
+                                                                    }}
+                                                                    className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
+                                                                >
+                                                                    <Key className="w-4 h-4" />
+                                                                    Reset Password
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedUser(user);
+                                                                        setShowModal("change-role");
+                                                                        setActionMenuOpen(null);
+                                                                    }}
+                                                                    className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
+                                                                >
+                                                                    <Shield className="w-4 h-4" />
+                                                                    Change Role
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleToggleStatus(user)}
+                                                                    className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
+                                                                >
+                                                                    {user.is_active ? (
+                                                                        <>
+                                                                            <ShieldOff className="w-4 h-4" />
+                                                                            Deactivate
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <CheckCircle2 className="w-4 h-4" />
+                                                                            Activate
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                                {user.role === "admin" && (
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            setActionMenuOpen(null);
+                                                                            try {
+                                                                                if (user.is_scrum_master) {
+                                                                                    // Remove Scrum Master
+                                                                                    const response = await fetch(`/api/admin/scrum-master?userId=${user.id}`, {
+                                                                                        method: "DELETE",
+                                                                                    });
+                                                                                    if (response.ok) {
+                                                                                        setUsers((prev) =>
+                                                                                            prev.map((u) =>
+                                                                                                u.id === user.id ? { ...u, is_scrum_master: false } : u
+                                                                                            )
+                                                                                        );
+                                                                                        toast.success(`Removed Scrum Master role from ${user.full_name}`);
+                                                                                    } else {
+                                                                                        toast.error("Failed to remove Scrum Master role");
+                                                                                    }
+                                                                                } else {
+                                                                                    // Set as Scrum Master
+                                                                                    const response = await fetch("/api/admin/scrum-master", {
+                                                                                        method: "POST",
+                                                                                        headers: { "Content-Type": "application/json" },
+                                                                                        body: JSON.stringify({ userId: user.id }),
+                                                                                    });
+                                                                                    if (response.ok) {
+                                                                                        // Update all users - remove scrum master from others, add to this one
+                                                                                        setUsers((prev) =>
+                                                                                            prev.map((u) => ({
+                                                                                                ...u,
+                                                                                                is_scrum_master: u.id === user.id,
+                                                                                            }))
+                                                                                        );
+                                                                                        toast.success(`${user.full_name} is now the Scrum Master`);
+                                                                                    } else {
+                                                                                        toast.error("Failed to set Scrum Master");
+                                                                                    }
+                                                                                }
+                                                                            } catch (error) {
+                                                                                toast.error("Error updating Scrum Master");
+                                                                                console.error(error);
+                                                                            }
+                                                                        }}
+                                                                        className={`flex items-center gap-2 w-full px-4 py-3 text-sm transition-colors ${user.is_scrum_master ? "text-amber-500 hover:bg-amber-500/10" : "hover:bg-secondary"}`}
+                                                                    >
+                                                                        <Crown className="w-4 h-4" />
+                                                                        {user.is_scrum_master ? "Remove Scrum Master" : "Set as Scrum Master"}
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => {
+                                                                        window.location.href = `mailto:${user.email}`;
+                                                                    }}
+                                                                    className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
+                                                                >
+                                                                    <Mail className="w-4 h-4" />
+                                                                    Send Email
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedUser(user);
+                                                                        setShowModal("delete");
+                                                                        setActionMenuOpen(null);
+                                                                    }}
+                                                                    className="flex items-center gap-2 w-full px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                    Delete User
+                                                                </button>
+                                                            </motion.div>
                                                         )}
-                                                        <button
-                                                            onClick={() => {
-                                                                window.location.href = `mailto:${user.email}`;
-                                                            }}
-                                                            className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary transition-colors"
-                                                        >
-                                                            <Mail className="w-4 h-4" />
-                                                            Send Email
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedUser(user);
-                                                                setShowModal("delete");
-                                                                setActionMenuOpen(null);
-                                                            }}
-                                                            className="flex items-center gap-2 w-full px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                            Delete User
-                                                        </button>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                                    </AnimatePresence>
+                                                </div>
+                                            </td>
+                                        </motion.tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
@@ -655,6 +684,25 @@ export default function UsersPage() {
                                             )}
                                         </button>
                                         <button
+                                            onClick={() => handleChangeRole("client")}
+                                            disabled={isLoading || selectedUser.role === "client"}
+                                            className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-colors ${selectedUser.role === "client"
+                                                ? "border-purple-500 bg-purple-500/10"
+                                                : "border-border hover:border-purple-500/50"
+                                                }`}
+                                        >
+                                            <Briefcase className="w-5 h-5 text-purple-500" />
+                                            <div className="text-left">
+                                                <p className="font-medium text-foreground">Client</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Client dashboard access
+                                                </p>
+                                            </div>
+                                            {selectedUser.role === "client" && (
+                                                <CheckCircle2 className="w-5 h-5 text-purple-500 ml-auto" />
+                                            )}
+                                        </button>
+                                        <button
                                             onClick={() => handleChangeRole("user")}
                                             disabled={isLoading || selectedUser.role === "user"}
                                             className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-colors ${selectedUser.role === "user"
@@ -745,7 +793,7 @@ export default function UsersPage() {
                                 <AddUserForm
                                     onClose={() => setShowModal(null)}
                                     onSuccess={(newUser) => {
-                                        setUsers((prev) => [...prev, newUser]);
+                                        setUsers((prev) => [newUser, ...prev]);
                                         setShowModal(null);
                                         toast.success("User added successfully!");
                                     }}
@@ -780,9 +828,30 @@ function AddUserForm({
         setIsLoading(true);
 
         try {
-            // In production, create user via Supabase Admin API
+            const response = await fetch("/api/admin/users", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                    fullName: formData.fullName,
+                    role: formData.role,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to create user");
+            }
+
+            // The API returns { success: true, user: AuthUser }. We need to construct the UserProfile.
+            // But actually we probably want to re-fetch or construct it optimistically.
+            // Let's check what the API returns exactly.
+            // It returns { success: true, user: ... } where user is the Auth user object.
+
             const newUser: UserProfile = {
-                id: Date.now().toString(),
+                id: data.user.id,
                 email: formData.email,
                 full_name: formData.fullName,
                 role: formData.role,
@@ -791,9 +860,10 @@ function AddUserForm({
                 avatar_url: null,
                 is_active: true,
             };
+
             onSuccess(newUser);
         } catch (error) {
-            toast.error("Failed to create user");
+            toast.error(error instanceof Error ? error.message : "Failed to create user");
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -807,7 +877,9 @@ function AddUserForm({
                     <div className="p-2 bg-primary/10 rounded-xl">
                         <UserPlus className="w-5 h-5 text-primary" />
                     </div>
-                    <h2 className="text-lg font-semibold text-foreground">Add User</h2>
+                    <h2 className="text-lg font-semibold text-foreground">
+                        Add New User
+                    </h2>
                 </div>
                 <button
                     onClick={onClose}
@@ -816,9 +888,10 @@ function AddUserForm({
                     <X className="w-4 h-4" />
                 </button>
             </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="text-sm font-medium text-foreground">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                         Full Name
                     </label>
                     <input
@@ -826,54 +899,63 @@ function AddUserForm({
                         required
                         value={formData.fullName}
                         onChange={(e) =>
-                            setFormData((p) => ({ ...p, fullName: e.target.value }))
+                            setFormData({ ...formData, fullName: e.target.value })
                         }
-                        className="w-full mt-1.5 px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        className="w-full px-4 py-2 bg-secondary/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
                         placeholder="John Doe"
                     />
                 </div>
+
                 <div>
-                    <label className="text-sm font-medium text-foreground">Email</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                        Email Address
+                    </label>
                     <input
                         type="email"
                         required
                         value={formData.email}
                         onChange={(e) =>
-                            setFormData((p) => ({ ...p, email: e.target.value }))
+                            setFormData({ ...formData, email: e.target.value })
                         }
-                        className="w-full mt-1.5 px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        className="w-full px-4 py-2 bg-secondary/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
                         placeholder="john@example.com"
                     />
                 </div>
+
                 <div>
-                    <label className="text-sm font-medium text-foreground">
-                        Temporary Password
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                        Password
                     </label>
                     <input
                         type="password"
                         required
-                        minLength={8}
+                        minLength={6}
                         value={formData.password}
                         onChange={(e) =>
-                            setFormData((p) => ({ ...p, password: e.target.value }))
+                            setFormData({ ...formData, password: e.target.value })
                         }
-                        className="w-full mt-1.5 px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        className="w-full px-4 py-2 bg-secondary/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
                         placeholder="••••••••"
                     />
                 </div>
+
                 <div>
-                    <label className="text-sm font-medium text-foreground">Role</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                        Role
+                    </label>
                     <select
                         value={formData.role}
                         onChange={(e) =>
-                            setFormData((p) => ({ ...p, role: e.target.value as UserRole }))
+                            setFormData({ ...formData, role: e.target.value as UserRole })
                         }
-                        className="w-full mt-1.5 px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        className="w-full px-4 py-2 bg-secondary/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
                         <option value="user">User</option>
+                        <option value="client">Client</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
+
                 <div className="flex gap-3 pt-2">
                     <button
                         type="button"

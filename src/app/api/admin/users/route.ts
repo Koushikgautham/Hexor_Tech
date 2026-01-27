@@ -68,10 +68,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create profile
+        // Create or update profile (upsert to handle potential race conditions or triggers)
         const { error: profileError } = await adminClient
             .from('profiles')
-            .insert({
+            .upsert({
                 id: authData.user.id,
                 email,
                 full_name: fullName,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
             // Try to delete the auth user if profile creation failed
             await adminClient.auth.admin.deleteUser(authData.user.id);
             return NextResponse.json(
-                { error: 'Failed to create user profile' },
+                { error: `Failed to create user profile: ${profileError.message}` },
                 { status: 500 }
             );
         }

@@ -26,6 +26,16 @@ import {
     Users,
     CalendarDays,
     Timer,
+    Receipt,
+    Phone,
+    Mail,
+    UserPlus,
+    X,
+    Search,
+    Star,
+    Download,
+    DollarSign,
+    Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProjectDocuments } from "@/components/admin/ProjectDocuments";
@@ -87,6 +97,49 @@ interface User {
     avatar_url?: string;
 }
 
+interface ProjectClient {
+    id: string;
+    created_at: string;
+    client: {
+        id: string;
+        email: string;
+        full_name: string | null;
+        avatar_url: string | null;
+    };
+}
+
+interface Invoice {
+    id: string;
+    project_id: string;
+    name: string;
+    description: string | null;
+    file_url: string;
+    file_name: string;
+    amount: number | null;
+    status: "pending" | "paid" | "overdue";
+    due_date: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+interface Contact {
+    id: string;
+    project_id: string;
+    user_id: string | null;
+    name: string;
+    role: string;
+    email: string | null;
+    phone: string | null;
+    is_primary: boolean;
+    created_at: string;
+    user?: {
+        id: string;
+        full_name: string;
+        email: string;
+        avatar_url: string | null;
+    };
+}
+
 // Circular Progress Component
 function CircularProgress({ progress, size = 120, strokeWidth = 8 }: { progress: number; size?: number; strokeWidth?: number }) {
     const radius = (size - strokeWidth) / 2;
@@ -138,17 +191,26 @@ export default function ProjectDetailPage() {
     const [tasks, setTasks] = React.useState<Task[]>([]);
     const [milestones, setMilestones] = React.useState<Milestone[]>([]);
     const [users, setUsers] = React.useState<User[]>([]);
-    const [activeTab, setActiveTab] = React.useState<"tasks" | "milestones" | "documents" | "sheets">("tasks");
+    const [projectClients, setProjectClients] = React.useState<ProjectClient[]>([]);
+    const [invoices, setInvoices] = React.useState<Invoice[]>([]);
+    const [contacts, setContacts] = React.useState<Contact[]>([]);
+    const [activeTab, setActiveTab] = React.useState<"tasks" | "milestones" | "documents" | "sheets" | "clients" | "invoices" | "contacts">("tasks");
     const [isLoading, setIsLoading] = React.useState(true);
     const [showTaskForm, setShowTaskForm] = React.useState(false);
     const [showMilestoneForm, setShowMilestoneForm] = React.useState(false);
+    const [showClientSelector, setShowClientSelector] = React.useState(false);
+    const [showInvoiceForm, setShowInvoiceForm] = React.useState(false);
+    const [showContactForm, setShowContactForm] = React.useState(false);
 
     const fetchProject = async () => {
         try {
-            const [projectRes, usersRes, milestonesRes] = await Promise.all([
+            const [projectRes, usersRes, milestonesRes, clientsRes, invoicesRes, contactsRes] = await Promise.all([
                 fetch(`/api/projects/${projectId}`),
                 fetch("/api/admin/team"),
                 fetch(`/api/projects/${projectId}/milestones`),
+                fetch(`/api/projects/${projectId}/clients`),
+                fetch(`/api/projects/${projectId}/invoices`),
+                fetch(`/api/projects/${projectId}/contacts`),
             ]);
 
             if (projectRes.ok) {
@@ -165,6 +227,18 @@ export default function ProjectDetailPage() {
 
             if (milestonesRes.ok) {
                 setMilestones(await milestonesRes.json());
+            }
+
+            if (clientsRes.ok) {
+                setProjectClients(await clientsRes.json());
+            }
+
+            if (invoicesRes.ok) {
+                setInvoices(await invoicesRes.json());
+            }
+
+            if (contactsRes.ok) {
+                setContacts(await contactsRes.json());
             }
         } catch (error) {
             console.error("Error fetching project:", error);
@@ -253,6 +327,165 @@ export default function ProjectDetailPage() {
             }
         } catch (error) {
             toast.error("Error deleting task");
+        }
+    };
+
+    // Client handlers
+    const handleAddClient = async (clientId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/clients`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ client_id: clientId }),
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Client added!");
+                setShowClientSelector(false);
+            } else {
+                const data = await response.json();
+                toast.error(data.error || "Failed to add client");
+            }
+        } catch (error) {
+            toast.error("Error adding client");
+        }
+    };
+
+    const handleRemoveClient = async (clientId: string) => {
+        if (!confirm("Remove this client from the project?")) return;
+
+        try {
+            const response = await fetch(`/api/projects/${projectId}/clients?client_id=${clientId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Client removed!");
+            } else {
+                toast.error("Failed to remove client");
+            }
+        } catch (error) {
+            toast.error("Error removing client");
+        }
+    };
+
+    // Invoice handlers
+    const handleCreateInvoice = async (invoiceData: any) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/invoices`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(invoiceData),
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Invoice created!");
+                setShowInvoiceForm(false);
+            } else {
+                toast.error("Failed to create invoice");
+            }
+        } catch (error) {
+            toast.error("Error creating invoice");
+        }
+    };
+
+    const handleUpdateInvoice = async (invoiceId: string, updates: any) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/invoices`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ invoice_id: invoiceId, ...updates }),
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Invoice updated!");
+            } else {
+                toast.error("Failed to update invoice");
+            }
+        } catch (error) {
+            toast.error("Error updating invoice");
+        }
+    };
+
+    const handleDeleteInvoice = async (invoiceId: string) => {
+        if (!confirm("Delete this invoice?")) return;
+
+        try {
+            const response = await fetch(`/api/projects/${projectId}/invoices?invoice_id=${invoiceId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Invoice deleted!");
+            } else {
+                toast.error("Failed to delete invoice");
+            }
+        } catch (error) {
+            toast.error("Error deleting invoice");
+        }
+    };
+
+    // Contact handlers
+    const handleCreateContact = async (contactData: any) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/contacts`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(contactData),
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Contact added!");
+                setShowContactForm(false);
+            } else {
+                toast.error("Failed to add contact");
+            }
+        } catch (error) {
+            toast.error("Error adding contact");
+        }
+    };
+
+    const handleUpdateContact = async (contactId: string, updates: any) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/contacts`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contact_id: contactId, ...updates }),
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Contact updated!");
+            } else {
+                toast.error("Failed to update contact");
+            }
+        } catch (error) {
+            toast.error("Error updating contact");
+        }
+    };
+
+    const handleDeleteContact = async (contactId: string) => {
+        if (!confirm("Remove this contact?")) return;
+
+        try {
+            const response = await fetch(`/api/projects/${projectId}/contacts?contact_id=${contactId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                await fetchProject();
+                toast.success("Contact removed!");
+            } else {
+                toast.error("Failed to remove contact");
+            }
+        } catch (error) {
+            toast.error("Error removing contact");
         }
     };
 
@@ -501,12 +734,15 @@ export default function ProjectDetailPage() {
                 className="bg-card border border-border rounded-2xl overflow-hidden"
             >
                 {/* Tab Buttons */}
-                <div className="flex border-b border-border">
+                <div className="flex border-b border-border overflow-x-auto">
                     {[
                         { id: "tasks", label: "Tasks", icon: ListTodo, count: tasks.length },
                         { id: "milestones", label: "Milestones", icon: Target, count: milestones.length },
                         { id: "documents", label: "Documents", icon: FileText },
                         { id: "sheets", label: "Sheets", icon: FileSpreadsheet },
+                        { id: "clients", label: "Clients", icon: Users, count: projectClients.length },
+                        { id: "invoices", label: "Invoices", icon: Receipt, count: invoices.length },
+                        { id: "contacts", label: "Contacts", icon: Phone, count: contacts.length },
                     ].map((tab) => (
                         <button
                             key={tab.id}
@@ -647,6 +883,186 @@ export default function ProjectDetailPage() {
                                 <p className="text-sm text-muted-foreground">Connect and view project spreadsheets</p>
                             </div>
                             <ProjectSheets projectId={projectId} />
+                        </div>
+                    )}
+
+                    {/* Clients Tab */}
+                    {activeTab === "clients" && (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-semibold text-foreground">Project Clients</h3>
+                                    <p className="text-sm text-muted-foreground">Manage clients who can access this project</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowClientSelector(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                                >
+                                    <UserPlus className="w-4 h-4" />
+                                    Add Client
+                                </button>
+                            </div>
+
+                            {showClientSelector && (
+                                <ClientSelector
+                                    projectId={projectId}
+                                    existingClientIds={projectClients.map(pc => pc.client.id)}
+                                    onSelect={handleAddClient}
+                                    onClose={() => setShowClientSelector(false)}
+                                />
+                            )}
+
+                            {projectClients.length > 0 ? (
+                                <div className="grid gap-3">
+                                    {projectClients.map((pc) => (
+                                        <div
+                                            key={pc.id}
+                                            className="flex items-center justify-between p-4 bg-secondary/30 border border-border rounded-xl"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                                    <User className="w-5 h-5 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-foreground">{pc.client.full_name || "Unnamed"}</p>
+                                                    <p className="text-sm text-muted-foreground">{pc.client.email}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleRemoveClient(pc.client.id)}
+                                                className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                                            >
+                                                <X className="w-4 h-4 text-red-500" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Users className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="font-medium text-foreground mb-1">No clients linked</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">Add clients to give them access to this project</p>
+                                    <button
+                                        onClick={() => setShowClientSelector(true)}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                                    >
+                                        <UserPlus className="w-4 h-4" />
+                                        Add Client
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Invoices Tab */}
+                    {activeTab === "invoices" && (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-semibold text-foreground">Project Invoices</h3>
+                                    <p className="text-sm text-muted-foreground">Manage invoices for clients</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowInvoiceForm(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Invoice
+                                </button>
+                            </div>
+
+                            {showInvoiceForm && (
+                                <InvoiceForm
+                                    onSubmit={handleCreateInvoice}
+                                    onCancel={() => setShowInvoiceForm(false)}
+                                />
+                            )}
+
+                            {invoices.length > 0 ? (
+                                <div className="grid gap-3">
+                                    {invoices.map((invoice) => (
+                                        <InvoiceItem
+                                            key={invoice.id}
+                                            invoice={invoice}
+                                            onUpdate={(updates) => handleUpdateInvoice(invoice.id, updates)}
+                                            onDelete={() => handleDeleteInvoice(invoice.id)}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Receipt className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="font-medium text-foreground mb-1">No invoices yet</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">Create invoices for your clients</p>
+                                    <button
+                                        onClick={() => setShowInvoiceForm(true)}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add Invoice
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Contacts Tab */}
+                    {activeTab === "contacts" && (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-semibold text-foreground">Points of Contact</h3>
+                                    <p className="text-sm text-muted-foreground">Team members clients can reach out to</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowContactForm(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Contact
+                                </button>
+                            </div>
+
+                            {showContactForm && (
+                                <ContactForm
+                                    users={users}
+                                    onSubmit={handleCreateContact}
+                                    onCancel={() => setShowContactForm(false)}
+                                />
+                            )}
+
+                            {contacts.length > 0 ? (
+                                <div className="grid gap-3">
+                                    {contacts.map((contact) => (
+                                        <ContactItem
+                                            key={contact.id}
+                                            contact={contact}
+                                            users={users}
+                                            onUpdate={(updates) => handleUpdateContact(contact.id, updates)}
+                                            onDelete={() => handleDeleteContact(contact.id)}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Phone className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="font-medium text-foreground mb-1">No contacts added</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">Add team members as points of contact</p>
+                                    <button
+                                        onClick={() => setShowContactForm(true)}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add Contact
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -965,6 +1381,551 @@ function TaskItem({
                     Complete
                 </button>
             </div>
+        </div>
+    );
+}
+
+// Client Selector Component
+function ClientSelector({
+    projectId,
+    existingClientIds,
+    onSelect,
+    onClose,
+}: {
+    projectId: string;
+    existingClientIds: string[];
+    onSelect: (clientId: string) => void;
+    onClose: () => void;
+}) {
+    const [clients, setClients] = React.useState<any[]>([]);
+    const [search, setSearch] = React.useState("");
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchClients = async () => {
+            try {
+                const response = await fetch(`/api/admin/clients?search=${search}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setClients(data.filter((c: any) => !existingClientIds.includes(c.id)));
+                }
+            } catch (error) {
+                console.error("Error fetching clients:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const debounce = setTimeout(fetchClients, 300);
+        return () => clearTimeout(debounce);
+    }, [search, existingClientIds]);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-secondary/30 border border-border rounded-xl p-5 space-y-4"
+        >
+            <div className="flex items-center justify-between">
+                <h4 className="font-medium text-foreground">Select Client</h4>
+                <button onClick={onClose} className="p-1 hover:bg-secondary rounded-lg">
+                    <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+            </div>
+
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                    type="text"
+                    placeholder="Search clients..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                />
+            </div>
+
+            <div className="max-h-60 overflow-y-auto space-y-2">
+                {loading ? (
+                    <div className="text-center py-4">
+                        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mx-auto" />
+                    </div>
+                ) : clients.length > 0 ? (
+                    clients.map((client) => (
+                        <button
+                            key={client.id}
+                            onClick={() => onSelect(client.id)}
+                            className="w-full flex items-center gap-3 p-3 bg-background border border-border rounded-xl hover:border-primary/50 transition-all text-left"
+                        >
+                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                <User className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium text-foreground truncate">{client.full_name || "Unnamed"}</p>
+                                <p className="text-sm text-muted-foreground truncate">{client.email}</p>
+                            </div>
+                            <Plus className="w-4 h-4 text-primary flex-shrink-0" />
+                        </button>
+                    ))
+                ) : (
+                    <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">No clients found</p>
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+}
+
+// Invoice Form Component
+function InvoiceForm({
+    invoice,
+    onSubmit,
+    onCancel,
+}: {
+    invoice?: Invoice;
+    onSubmit: (data: any) => Promise<void>;
+    onCancel: () => void;
+}) {
+    const [formData, setFormData] = React.useState({
+        name: invoice?.name || "",
+        description: invoice?.description || "",
+        file_url: invoice?.file_url || "",
+        file_name: invoice?.file_name || "",
+        amount: invoice?.amount?.toString() || "",
+        status: invoice?.status || "pending",
+        due_date: invoice?.due_date || "",
+    });
+    const [loading, setLoading] = React.useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await onSubmit({
+                ...formData,
+                amount: formData.amount ? parseFloat(formData.amount) : null,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <motion.form
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onSubmit={handleSubmit}
+            className="bg-secondary/30 border border-border rounded-xl p-5 space-y-4"
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Invoice Name</label>
+                    <input
+                        type="text"
+                        required
+                        placeholder="e.g., Q1 2026 Invoice"
+                        value={formData.name}
+                        onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Description</label>
+                    <textarea
+                        placeholder="Invoice description (optional)"
+                        rows={2}
+                        value={formData.description}
+                        onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">File URL</label>
+                    <input
+                        type="url"
+                        required
+                        placeholder="https://..."
+                        value={formData.file_url}
+                        onChange={(e) => setFormData((p) => ({ ...p, file_url: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">File Name</label>
+                    <input
+                        type="text"
+                        required
+                        placeholder="invoice.pdf"
+                        value={formData.file_name}
+                        onChange={(e) => setFormData((p) => ({ ...p, file_name: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Amount</label>
+                    <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={formData.amount}
+                            onChange={(e) => setFormData((p) => ({ ...p, amount: e.target.value }))}
+                            className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Status</label>
+                    <select
+                        value={formData.status}
+                        onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value as any }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    >
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Due Date</label>
+                    <input
+                        type="date"
+                        value={formData.due_date}
+                        onChange={(e) => setFormData((p) => ({ ...p, due_date: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="flex-1 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-sm font-medium hover:bg-secondary/80 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {invoice ? "Updating..." : "Creating..."}
+                        </>
+                    ) : (
+                        invoice ? "Update Invoice" : "Create Invoice"
+                    )}
+                </button>
+            </div>
+        </motion.form>
+    );
+}
+
+// Invoice Item Component
+function InvoiceItem({
+    invoice,
+    onUpdate,
+    onDelete,
+}: {
+    invoice: Invoice;
+    onUpdate: (updates: any) => void;
+    onDelete: () => void;
+}) {
+    const statusConfig = {
+        pending: { color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/20" },
+        paid: { color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/20" },
+        overdue: { color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" },
+    };
+
+    const status = statusConfig[invoice.status];
+
+    return (
+        <div className="flex items-center justify-between p-4 bg-secondary/30 border border-border rounded-xl hover:border-primary/20 transition-all">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="p-3 bg-primary/10 rounded-xl flex-shrink-0">
+                    <Receipt className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-foreground truncate">{invoice.name}</h4>
+                        <span className={`px-2 py-0.5 rounded-lg text-xs font-medium border ${status.bg} ${status.color} ${status.border}`}>
+                            {invoice.status}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {invoice.amount && (
+                            <span className="font-medium text-foreground">${invoice.amount.toFixed(2)}</span>
+                        )}
+                        {invoice.due_date && (
+                            <span>Due: {new Date(invoice.due_date).toLocaleDateString()}</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+                <select
+                    value={invoice.status}
+                    onChange={(e) => onUpdate({ status: e.target.value })}
+                    className="px-3 py-1.5 bg-background border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                </select>
+                <a
+                    href={invoice.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 hover:bg-secondary rounded-lg transition-colors"
+                    title="Download"
+                >
+                    <Download className="w-4 h-4 text-muted-foreground" />
+                </a>
+                <button
+                    onClick={onDelete}
+                    className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                    title="Delete"
+                >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// Contact Form Component
+function ContactForm({
+    contact,
+    users,
+    onSubmit,
+    onCancel,
+}: {
+    contact?: Contact;
+    users: User[];
+    onSubmit: (data: any) => Promise<void>;
+    onCancel: () => void;
+}) {
+    const [formData, setFormData] = React.useState({
+        name: contact?.name || "",
+        role: contact?.role || "",
+        email: contact?.email || "",
+        phone: contact?.phone || "",
+        user_id: contact?.user_id || "",
+        is_primary: contact?.is_primary || false,
+    });
+    const [loading, setLoading] = React.useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await onSubmit(formData);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Auto-fill from selected team member
+    const handleUserSelect = (userId: string) => {
+        const user = users.find(u => u.id === userId);
+        if (user) {
+            setFormData(p => ({
+                ...p,
+                user_id: userId,
+                name: user.full_name,
+                email: user.email,
+            }));
+        } else {
+            setFormData(p => ({ ...p, user_id: "" }));
+        }
+    };
+
+    return (
+        <motion.form
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onSubmit={handleSubmit}
+            className="bg-secondary/30 border border-border rounded-xl p-5 space-y-4"
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Link to Team Member (Optional)</label>
+                    <select
+                        value={formData.user_id}
+                        onChange={(e) => handleUserSelect(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    >
+                        <option value="">Select a team member or enter manually</option>
+                        {users.map((user) => (
+                            <option key={user.id} value={user.id}>
+                                {user.full_name} ({user.email})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Name</label>
+                    <input
+                        type="text"
+                        required
+                        placeholder="Contact name"
+                        value={formData.name}
+                        onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Role</label>
+                    <input
+                        type="text"
+                        required
+                        placeholder="e.g., Project Manager"
+                        value={formData.role}
+                        onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
+                    <input
+                        type="email"
+                        placeholder="email@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Phone</label>
+                    <input
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        value={formData.phone}
+                        onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={formData.is_primary}
+                            onChange={(e) => setFormData((p) => ({ ...p, is_primary: e.target.checked }))}
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50"
+                        />
+                        <span className="text-sm text-foreground">Set as primary contact</span>
+                    </label>
+                </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="flex-1 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-sm font-medium hover:bg-secondary/80 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {contact ? "Updating..." : "Adding..."}
+                        </>
+                    ) : (
+                        contact ? "Update Contact" : "Add Contact"
+                    )}
+                </button>
+            </div>
+        </motion.form>
+    );
+}
+
+// Contact Item Component
+function ContactItem({
+    contact,
+    users,
+    onUpdate,
+    onDelete,
+}: {
+    contact: Contact;
+    users: User[];
+    onUpdate: (updates: any) => void;
+    onDelete: () => void;
+}) {
+    const [isEditing, setIsEditing] = React.useState(false);
+
+    return (
+        <div className="bg-secondary/30 border border-border rounded-xl p-4 hover:border-primary/20 transition-all">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium text-foreground truncate">{contact.name}</h4>
+                            {contact.is_primary && (
+                                <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium">
+                                    <Star className="w-3 h-3" />
+                                    Primary
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{contact.role}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                            {contact.email && (
+                                <a href={`mailto:${contact.email}`} className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                                    <Mail className="w-3.5 h-3.5" />
+                                    {contact.email}
+                                </a>
+                            )}
+                            {contact.phone && (
+                                <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                                    <Phone className="w-3.5 h-3.5" />
+                                    {contact.phone}
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                    <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="p-2 hover:bg-secondary rounded-lg transition-colors"
+                        title="Edit"
+                    >
+                        <Edit className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Delete"
+                    >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                </div>
+            </div>
+
+            {isEditing && (
+                <div className="mt-4 pt-4 border-t border-border">
+                    <ContactForm
+                        contact={contact}
+                        users={users}
+                        onSubmit={async (data) => {
+                            await onUpdate(data);
+                            setIsEditing(false);
+                        }}
+                        onCancel={() => setIsEditing(false)}
+                    />
+                </div>
+            )}
         </div>
     );
 }

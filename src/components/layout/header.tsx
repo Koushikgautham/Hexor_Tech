@@ -30,7 +30,7 @@ const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string
     const headerOffset = -30;
     const elementPosition = element.getBoundingClientRect().top;
     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-    
+
     window.scrollTo({
       top: offsetPosition,
       behavior: "smooth"
@@ -147,7 +147,7 @@ export function Header() {
 
     window.addEventListener("resize", layout);
     if (document.fonts) {
-      document.fonts.ready.then(layout).catch(() => {});
+      document.fonts.ready.then(layout).catch(() => { });
     }
 
     return () => window.removeEventListener("resize", layout);
@@ -192,17 +192,17 @@ export function Header() {
   // Show/hide navbar based on cursor proximity
   React.useEffect(() => {
     const currentScrollY = window.scrollY;
-    
+
     // If cursor is near top and we're scrolled down, show navbar
     if (isCursorNearTop && currentScrollY > 80) {
       if (isHidden) {
         setIsTransitioning(true);
         setIsHidden(false);
-        
+
         if (transitionTimeoutRef.current) {
           clearTimeout(transitionTimeoutRef.current);
         }
-        
+
         transitionTimeoutRef.current = setTimeout(() => {
           setIsTransitioning(false);
         }, 350);
@@ -213,11 +213,11 @@ export function Header() {
       if (!isHidden) {
         setIsTransitioning(true);
         setIsHidden(true);
-        
+
         if (transitionTimeoutRef.current) {
           clearTimeout(transitionTimeoutRef.current);
         }
-        
+
         transitionTimeoutRef.current = setTimeout(() => {
           setIsTransitioning(false);
         }, 350);
@@ -400,7 +400,15 @@ export function Header() {
             )}
 
             {/* CTA Button - Desktop - Changed: Removed ClickSpark wrapper, now using global ClickSpark */}
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center gap-2">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button asChild variant="ghost" className="rounded-full px-6 text-muted-foreground hover:text-foreground">
+                  <Link href="/auth/login">Login</Link>
+                </Button>
+              </motion.div>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -470,17 +478,24 @@ export function Header() {
                     transition={{ delay: navItems.length * 0.1 }}
                     className="mt-4 px-4"
                   >
-                    <Button asChild className="w-full rounded-full">
-                      <a
-                        href="#contact"
-                        onClick={(e) => {
-                          handleSmoothScroll(e, "#contact");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        Get Started
-                      </a>
-                    </Button>
+                    <div className="flex gap-2 w-full">
+                      <Button asChild variant="outline" className="flex-1 rounded-full">
+                        <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                          Login
+                        </Link>
+                      </Button>
+                      <Button asChild className="flex-1 rounded-full">
+                        <a
+                          href="#contact"
+                          onClick={(e) => {
+                            handleSmoothScroll(e, "#contact");
+                            setIsMobileMenuOpen(false);
+                          }}
+                        >
+                          Get Started
+                        </a>
+                      </Button>
+                    </div>
                   </motion.div>
                 </nav>
               </SheetContent>
