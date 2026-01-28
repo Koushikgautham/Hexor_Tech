@@ -28,8 +28,8 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@hexora.tech",
-    href: "mailto:hello@hexora.tech",
+    value: "hello@hexor.tech",
+    href: "mailto:hello@hexor.tech",
   },
   {
     icon: Phone,

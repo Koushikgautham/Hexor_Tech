@@ -77,7 +77,7 @@ export function Footer() {
               <Link href="/" className="inline-block">
                 <span className="text-2xl font-bold tracking-tight">
                   <span className="text-primary">Hex</span>
-                  <span className="text-white">ora</span>
+                  <span className="text-white">or</span>
                 </span>
               </Link>
               <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-400">
@@ -129,7 +129,7 @@ export function Footer() {
           {/* Bottom Bar */}
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 sm:flex-row">
             <p className="text-xs text-gray-500">
-              &copy; {new Date().getFullYear()} Hexora. All rights reserved.
+              &copy; {new Date().getFullYear()} Hexor. All rights reserved.
             </p>
             <p className="text-xs text-gray-600">
               <span className="font-mono">// </span>

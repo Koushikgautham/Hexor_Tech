@@ -95,7 +95,7 @@ export default function SignupPage() {
                         Create Account
                     </h1>
                     <p className="text-muted-foreground">
-                        Join Hexora to get started
+                        Join Hexor to get started
                     </p>
                 </div>
 

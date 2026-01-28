@@ -129,7 +129,7 @@ interface ThreadsBackgroundProps {
 }
 
 export function ThreadsBackground({
-  color = [0.88, 0.11, 0.28], // Hexora red in RGB (0-1 range)
+  color = [0.88, 0.11, 0.28], // Hexor red in RGB (0-1 range)
   amplitude = 1,
   distance = 0,
   enableMouseInteraction = true,

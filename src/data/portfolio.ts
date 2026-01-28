@@ -20,7 +20,7 @@ export const portfolioItems = [
     ],
     testimonial: {
       quote:
-        "Hexora didn't just digitize our business—they revolutionized how we think about retail. Our customers now enjoy a seamless experience whether they shop online or in-store.",
+        "Hexor didn't just digitize our business—they revolutionized how we think about retail. Our customers now enjoy a seamless experience whether they shop online or in-store.",
       author: "Rajesh Kumar",
       role: "CEO, TechMart Electronics",
     },
@@ -47,7 +47,7 @@ export const portfolioItems = [
     ],
     testimonial: {
       quote:
-        "The automation solutions from Hexora have transformed our operations. We've scaled production significantly while maintaining the quality our customers expect.",
+        "The automation solutions from Hexor have transformed our operations. We've scaled production significantly while maintaining the quality our customers expect.",
       author: "Priya Sharma",
       role: "Operations Director, GreenLeaf Organics",
     },
@@ -74,7 +74,7 @@ export const portfolioItems = [
     ],
     testimonial: {
       quote:
-        "From a single store in Mumbai to shipping nationwide—Hexora made our dream of national expansion a reality. Their ecommerce expertise is unmatched.",
+        "From a single store in Mumbai to shipping nationwide—Hexor made our dream of national expansion a reality. Their ecommerce expertise is unmatched.",
       author: "Anita Desai",
       role: "Founder, Fashionista Boutique",
     },
@@ -101,7 +101,7 @@ export const portfolioItems = [
     ],
     testimonial: {
       quote:
-        "Our social media went from an afterthought to our primary lead generation channel. Hexora's creative approach and strategic thinking made all the difference.",
+        "Our social media went from an afterthought to our primary lead generation channel. Hexor's creative approach and strategic thinking made all the difference.",
       author: "Vikram Singh",
       role: "Marketing Head, UrbanFit",
     },

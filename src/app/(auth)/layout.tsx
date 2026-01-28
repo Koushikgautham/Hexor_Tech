@@ -99,7 +99,7 @@ export default function AuthLayout({
                             </span>
                         </div>
                         <span className="text-xl font-bold text-foreground hidden sm:inline">
-                            Hexora
+                            Hexor
                         </span>
                     </motion.div>
                 </Link>
@@ -141,7 +141,7 @@ export default function AuthLayout({
 
             {/* Footer */}
             <footer className="relative z-10 text-center py-4 text-sm text-muted-foreground">
-                <p>© {new Date().getFullYear()} Hexora. All rights reserved.</p>
+                <p>© {new Date().getFullYear()} Hexor. All rights reserved.</p>
             </footer>
         </div>
     );

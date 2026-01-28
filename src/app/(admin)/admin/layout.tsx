@@ -97,7 +97,7 @@ export default function AdminLayout({
                                 <span className="text-primary-foreground font-bold text-xl">H</span>
                             </div>
                             <div>
-                                <h1 className="font-bold text-foreground">Hexora</h1>
+                                <h1 className="font-bold text-foreground">Hexor</h1>
                                 <p className="text-xs text-muted-foreground">Admin Portal</p>
                             </div>
                         </Link>

@@ -28,7 +28,7 @@ export function CTA() {
 
           <FadeIn delay={0.2}>
             <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-              Let&apos;s discuss how Hexora can help your MSME embrace digital
+              Let&apos;s discuss how Hexor can help your MSME embrace digital
               transformation. Schedule a free consultation today.
             </p>
           </FadeIn>

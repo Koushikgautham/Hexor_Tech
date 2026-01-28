@@ -10,8 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hexora | Digital Transformation for MSMEs",
-    template: "%s | Hexora",
+    default: "Hexor | Digital Transformation for MSMEs",
+    template: "%s | Hexor",
   },
   description:
     "Empowering MSMEs with cutting-edge digital transformation solutions. We provide automation, ecommerce management, and social media services to help your business thrive.",
@@ -23,20 +23,20 @@ export const metadata: Metadata = {
     "social media management",
     "business solutions",
   ],
-  authors: [{ name: "Hexora" }],
-  creator: "Hexora",
+  authors: [{ name: "Hexor" }],
+  creator: "Hexor",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://hexora.com",
-    siteName: "Hexora",
-    title: "Hexora | Digital Transformation for MSMEs",
+    siteName: "Hexor",
+    title: "Hexor | Digital Transformation for MSMEs",
     description:
       "Empowering MSMEs with cutting-edge digital transformation solutions.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hexora | Digital Transformation for MSMEs",
+    title: "Hexor | Digital Transformation for MSMEs",
     description:
       "Empowering MSMEs with cutting-edge digital transformation solutions.",
   },

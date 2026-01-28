@@ -61,7 +61,7 @@ export default function LoginForm() {
                         Welcome Back
                     </h1>
                     <p className="text-muted-foreground">
-                        Sign in to your Hexora account
+                        Sign in to your Hexor account
                     </p>
                 </div>
 

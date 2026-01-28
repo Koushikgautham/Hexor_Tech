@@ -2,7 +2,7 @@ export const testimonials = [
   {
     id: 1,
     quote:
-      "Hexora transformed our entire business operations. What used to take our team hours now happens automatically. The ROI has been incredible.",
+      "Hexor transformed our entire business operations. What used to take our team hours now happens automatically. The ROI has been incredible.",
     author: "Rajesh Kumar",
     role: "CEO",
     company: "TechMart Electronics",
@@ -11,7 +11,7 @@ export const testimonials = [
   {
     id: 2,
     quote:
-      "Working with Hexora felt like having an in-house digital team. They understood our challenges and delivered solutions that actually work.",
+      "Working with Hexor felt like having an in-house digital team. They understood our challenges and delivered solutions that actually work.",
     author: "Priya Sharma",
     role: "Operations Director",
     company: "GreenLeaf Organics",
@@ -20,7 +20,7 @@ export const testimonials = [
   {
     id: 3,
     quote:
-      "From zero online presence to a thriving ecommerce business—Hexora made it possible. Their expertise in digital commerce is unmatched.",
+      "From zero online presence to a thriving ecommerce business—Hexor made it possible. Their expertise in digital commerce is unmatched.",
     author: "Anita Desai",
     role: "Founder",
     company: "Fashionista Boutique",
@@ -29,7 +29,7 @@ export const testimonials = [
   {
     id: 4,
     quote:
-      "The social media strategy Hexora developed for us generated more leads in 3 months than we had in the previous year. Absolutely phenomenal results.",
+      "The social media strategy Hexor developed for us generated more leads in 3 months than we had in the previous year. Absolutely phenomenal results.",
     author: "Vikram Singh",
     role: "Marketing Head",
     company: "UrbanFit",
@@ -38,7 +38,7 @@ export const testimonials = [
   {
     id: 5,
     quote:
-      "What sets Hexora apart is their genuine commitment to MSME success. They don't just provide services—they become partners in your growth journey.",
+      "What sets Hexor apart is their genuine commitment to MSME success. They don't just provide services—they become partners in your growth journey.",
     author: "Meera Patel",
     role: "Managing Director",
     company: "Patel Industries",

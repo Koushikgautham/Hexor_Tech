@@ -66,7 +66,7 @@ export default function Globe({
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    // Create globe sphere (dark background matching Hexora theme)
+    // Create globe sphere (dark background matching Hexor theme)
     const globeGeometry = new THREE.SphereGeometry(1, 64, 64);
     const globeMaterial = new THREE.MeshBasicMaterial({
       color: 0x0a0a0a, // Near black matching dark theme
@@ -180,7 +180,7 @@ export default function Globe({
       dotGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
 
       const dotMaterial = new THREE.PointsMaterial({
-        color: 0xe11d48, // Hexora red for land dots
+        color: 0xe11d48, // Hexor red for land dots
         size: 0.008, // Smaller dots since they're closer together
         transparent: true,
         opacity: 0.8,
@@ -310,17 +310,17 @@ export default function Globe({
       const markerGroup = new THREE.Group();
       const pos = latLngToVector3(lat, lng, 1.008);
 
-      // Main dot (reduced size) - Hexora primary red
+      // Main dot (reduced size) - Hexor primary red
       const dotGeometry = new THREE.SphereGeometry(0.016, 16, 16);
-      const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xe11d48 }); // Hexora primary red
+      const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xe11d48 }); // Hexor primary red
       const dot = new THREE.Mesh(dotGeometry, dotMaterial);
       dot.position.copy(pos);
       markerGroup.add(dot);
 
-      // Outer glow (reduced size) - Hexora primary red
+      // Outer glow (reduced size) - Hexor primary red
       const glowGeometry = new THREE.SphereGeometry(0.025, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
-        color: 0xe11d48, // Hexora primary red
+        color: 0xe11d48, // Hexor primary red
         transparent: true,
         opacity: 0.4,
       });

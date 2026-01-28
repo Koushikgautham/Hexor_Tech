@@ -41,6 +41,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState("hero");
   const lastScrollY = React.useRef(0);
+  const scrollUpStartY = React.useRef(0);
 
   React.useEffect(() => {
     const sectionIds = ["hero", ...navItems.map((item) => item.href.replace("#", ""))];
@@ -74,18 +75,30 @@ export function Header() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const scrollThreshold = 100;
+      const scrollUpThreshold = 80; // User needs to scroll up 80px before navbar expands
 
       if (currentScrollY <= scrollThreshold) {
         // At or near top - always expanded
         setIsCompact(false);
+        scrollUpStartY.current = 0;
       } else {
         // Past threshold - check scroll direction
         if (currentScrollY > lastScrollY.current) {
-          // Scrolling down - compact
+          // Scrolling down - compact and reset scroll up start position
           setIsCompact(true);
+          scrollUpStartY.current = 0;
         } else if (currentScrollY < lastScrollY.current) {
-          // Scrolling up - expand
-          setIsCompact(false);
+          // Scrolling up - track how much they've scrolled up
+          if (scrollUpStartY.current === 0) {
+            // Just started scrolling up, record the position
+            scrollUpStartY.current = lastScrollY.current;
+          }
+
+          // Only expand if user has scrolled up by the threshold amount
+          const scrolledUpDistance = scrollUpStartY.current - currentScrollY;
+          if (scrolledUpDistance >= scrollUpThreshold) {
+            setIsCompact(false);
+          }
         }
       }
 
@@ -128,7 +141,7 @@ export function Header() {
               <Link href="/" className="flex items-center gap-2 whitespace-nowrap">
                 <span className="font-mono text-sm text-primary">&lt;/&gt;</span>
                 <span className="text-lg font-semibold tracking-tight text-white">
-                  hexora
+                  hexor
                 </span>
               </Link>
             </div>

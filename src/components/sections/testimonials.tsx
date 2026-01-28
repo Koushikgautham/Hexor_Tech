@@ -20,12 +20,12 @@ const stats = [
   {
     value: "18",
     suffix: "+",
-    label: "Countries where brands use websites built by Hexora",
+    label: "Countries where brands use websites built by Hexor",
   },
   {
     value: "72",
     suffix: "%",
-    label: "Average improvement in conversion rates after a Hexora-led redesign",
+    label: "Average improvement in conversion rates after a Hexor-led redesign",
   },
 ];
 
@@ -112,7 +112,7 @@ export function Testimonials() {
               Client <span className="text-gray-400">stories.</span>
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-400">
-              Hear directly from our clients about their experiences with Hexora—from
+              Hear directly from our clients about their experiences with Hexor—from
               seamless collaboration to impactful design solutions that elevate their brands.
             </p>
           </div>

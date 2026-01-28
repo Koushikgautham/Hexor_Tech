@@ -3,17 +3,17 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-interface HexoraLogo3DProps {
+interface HexorLogo3DProps {
   className?: string;
   autoRotate?: boolean;
   glbPath?: string; // Path to GLB file when available
 }
 
-export function HexoraLogo3D({
+export function HexorLogo3D({
   className = "",
   autoRotate = true,
   glbPath,
-}: HexoraLogo3DProps) {
+}: HexorLogo3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<{
     scene: THREE.Scene;
@@ -62,7 +62,7 @@ export function HexoraLogo3D({
     // Create hexagonal 6 shape (placeholder - will be replaced by GLB)
     const logo = new THREE.Group();
 
-    // Hexora red color
+    // Hexor red color
     const hexoraRed = new THREE.Color(0xe11d48);
 
     // Create the "6" shape with hexagonal style

@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronLeft, ChevronRight, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Globe from "@/components/Globe";
-import { HexoraLogo3D } from "@/components/HexoraLogo3D";
+import { HexorLogo3D } from "@/components/HexoraLogo3D";
 import { team } from "@/data/team";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -117,7 +117,7 @@ export function Team() {
             <div className="md:col-span-4">
               <div className="about-card flex h-full min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/5 bg-[#111] p-8">
                 <div className="h-64 w-64">
-                  <HexoraLogo3D className="h-full w-full" autoRotate={true} />
+                  <HexorLogo3D className="h-full w-full" autoRotate={true} />
                 </div>
                 <div className="mt-6 text-center">
                   <p className="text-sm text-gray-400">Framer Pro Expert & Partner</p>

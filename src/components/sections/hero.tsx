@@ -58,7 +58,7 @@ export function Hero() {
           <div className="hero-line mb-8">
             <span className="inline-flex items-center gap-2 font-mono text-xs tracking-wider text-gray-500">
               <span className="text-primary">&lt;</span>
-              hexora.tech
+              hexor.tech
               <span className="text-primary">/&gt;</span>
             </span>
           </div>
