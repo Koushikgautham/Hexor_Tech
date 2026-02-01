@@ -1,32 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import dynamic from "next/dynamic";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronLeft, ChevronRight, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { team } from "@/data/team";
-
-// Dynamically import heavy 3D components with loading states
-const Globe = dynamic(() => import("@/components/Globe"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-    </div>
-  ),
-});
-
-const HexorLogo3D = dynamic(() => import("@/components/HexoraLogo3D").then(mod => mod.HexorLogo3D), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-    </div>
-  ),
-});
+import Globe from "@/components/Globe";
+import { HexorLogo3D } from "@/components/HexoraLogo3D";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -182,24 +163,16 @@ export function Team() {
             {/* Photo Side */}
             <div className="relative h-96 md:h-auto">
               <div className="absolute inset-0 bg-gradient-to-br from-[#111] to-[#0a0a0a]">
-                <div className="relative h-full w-full">
-                  <Image
-                    src={currentMember.avatar}
-                    alt={currentMember.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    quality={85}
-                    priority={currentMemberIndex === 0}
-                    placeholder="blur"
-                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                    onError={(e) => {
-                      // Fallback to initials if image fails
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = "none";
-                    }}
-                  />
-                </div>
+                <img
+                  src={currentMember.avatar}
+                  alt={currentMember.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => {
+                    // Fallback to initials if image fails
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
               </div>
               {/* Name overlay on photo */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">

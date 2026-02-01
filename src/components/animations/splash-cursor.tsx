@@ -27,29 +27,15 @@ export function SplashCursor() {
 
     setIsDesktop(true);
 
-    // Use requestAnimationFrame for smoother cursor tracking
-    let rafId: number;
-    let currentX = -100;
-    let currentY = -100;
-
     const moveCursor = (e: MouseEvent) => {
-      currentX = e.clientX;
-      currentY = e.clientY;
-
-      if (!rafId) {
-        rafId = requestAnimationFrame(() => {
-          cursorX.set(currentX);
-          cursorY.set(currentY);
-          rafId = 0;
-        });
-      }
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
     };
 
-    window.addEventListener("mousemove", moveCursor, { passive: true });
+    window.addEventListener("mousemove", moveCursor);
 
     return () => {
       window.removeEventListener("mousemove", moveCursor);
-      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [cursorX, cursorY]);
 

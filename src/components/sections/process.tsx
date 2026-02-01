@@ -33,17 +33,17 @@ const processSteps = [
 
 export function Process() {
   return (
-    <section className="py-24 sm:py-32">
+    <section className="relative bg-[#0a0a0a] py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <FadeIn className="mx-auto max-w-2xl text-center">
           <span className="mb-4 inline-block text-sm font-semibold uppercase tracking-wider text-primary">
             Our Process
           </span>
-          <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             How We Work
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-gray-400">
             A proven methodology that delivers results. We&apos;ve refined our
             process over hundreds of successful projects.
           </p>
@@ -55,7 +55,7 @@ export function Process() {
           staggerDelay={0.2}
         >
           {/* Connecting Line - Desktop */}
-          <div className="absolute left-0 right-0 top-1/2 hidden h-0.5 -translate-y-1/2 bg-gradient-to-r from-transparent via-border to-transparent lg:block" />
+          <div className="absolute left-0 right-0 top-1/2 hidden h-0.5 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/5 to-transparent lg:block" />
 
           <div className="grid gap-8 lg:grid-cols-4">
             {processSteps.map((step, index) => (
@@ -70,7 +70,7 @@ export function Process() {
                 </div>
 
                 {/* Card */}
-                <div className="relative z-10 rounded-xl border border-border bg-card p-6 pt-12 transition-colors hover:border-primary/50 lg:text-center">
+                <div className="relative z-10 rounded-xl border border-white/5 bg-[#111] p-6 pt-12 transition-colors hover:border-primary/50 lg:text-center">
                   {/* Icon */}
                   <motion.div
                     className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary lg:mx-auto"
@@ -81,8 +81,8 @@ export function Process() {
                   </motion.div>
 
                   {/* Content */}
-                  <h3 className="mb-2 text-xl font-semibold">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="mb-2 text-xl font-semibold text-white">{step.title}</h3>
+                  <p className="text-sm text-gray-400">
                     {step.description}
                   </p>
                 </div>
@@ -90,7 +90,7 @@ export function Process() {
                 {/* Arrow - Mobile */}
                 {index < processSteps.length - 1 && (
                   <div className="my-4 flex justify-center lg:hidden">
-                    <div className="h-8 w-0.5 bg-border" />
+                    <div className="h-8 w-0.5 bg-white/5" />
                   </div>
                 )}
               </motion.div>

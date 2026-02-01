@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 interface HexorLogo3DProps {
@@ -41,11 +41,9 @@ export function HexorLogo3D({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: "high-performance",
-      stencil: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Reduce pixel ratio for performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
@@ -136,11 +134,11 @@ export function HexorLogo3D({
     let mouseX = 0;
     let mouseY = 0;
 
-    const handleMouseMove = useCallback((event: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       mouseX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
       mouseY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-    }, []);
+    };
 
     container.addEventListener("mousemove", handleMouseMove);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import * as topojson from 'topojson-client';
 
@@ -60,12 +60,9 @@ export default function Globe({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: "high-performance",
-      stencil: false,
-      depth: false,
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Reduce pixel ratio for performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     // Globe group for rotation
@@ -73,8 +70,7 @@ export default function Globe({
     scene.add(globeGroup);
 
     // Create globe sphere (dark background matching Hexor theme)
-    // Reduced geometry complexity for performance
-    const globeGeometry = new THREE.SphereGeometry(1, 48, 48);
+    const globeGeometry = new THREE.SphereGeometry(1, 64, 64);
     const globeMaterial = new THREE.MeshBasicMaterial({
       color: 0x0a0a0a, // Near black matching dark theme
     });
@@ -95,7 +91,7 @@ export default function Globe({
     // Create lat/long lines (dark red for black & red theme)
     const createLatLongLines = () => {
       const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0x3a1515, // Dark red
+        color: 0x5b5b5b, // Dark red
         transparent: true,
         opacity: 0.4,
       });
@@ -361,15 +357,15 @@ export default function Globe({
       animationId: 0,
     };
 
-    // Memoized mouse handlers for performance
-    const handleMouseDown = useCallback((e: MouseEvent) => {
+    // Mouse handlers
+    const handleMouseDown = (e: MouseEvent) => {
       if (!sceneRef.current) return;
       sceneRef.current.isDragging = true;
       sceneRef.current.autoRotate = false;
       sceneRef.current.previousMousePosition = { x: e.clientX, y: e.clientY };
-    }, []);
+    };
 
-    const handleMouseMove = useCallback((e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (!sceneRef.current || !sceneRef.current.isDragging) return;
 
       const deltaX = e.clientX - sceneRef.current.previousMousePosition.x;
@@ -383,18 +379,18 @@ export default function Globe({
       );
 
       sceneRef.current.previousMousePosition = { x: e.clientX, y: e.clientY };
-    }, []);
+    };
 
-    const handleMouseUp = useCallback(() => {
+    const handleMouseUp = () => {
       if (!sceneRef.current) return;
       sceneRef.current.isDragging = false;
       setTimeout(() => {
         if (sceneRef.current) sceneRef.current.autoRotate = true;
       }, 3000);
-    }, []);
+    };
 
-    // Memoized touch handlers for performance
-    const handleTouchStart = useCallback((e: TouchEvent) => {
+    // Touch handlers
+    const handleTouchStart = (e: TouchEvent) => {
       if (!sceneRef.current) return;
       sceneRef.current.isDragging = true;
       sceneRef.current.autoRotate = false;
@@ -402,9 +398,9 @@ export default function Globe({
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
       };
-    }, []);
+    };
 
-    const handleTouchMove = useCallback((e: TouchEvent) => {
+    const handleTouchMove = (e: TouchEvent) => {
       if (!sceneRef.current || !sceneRef.current.isDragging) return;
 
       const deltaX = e.touches[0].clientX - sceneRef.current.previousMousePosition.x;
@@ -421,15 +417,15 @@ export default function Globe({
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
       };
-    }, []);
+    };
 
-    const handleTouchEnd = useCallback(() => {
+    const handleTouchEnd = () => {
       if (!sceneRef.current) return;
       sceneRef.current.isDragging = false;
       setTimeout(() => {
         if (sceneRef.current) sceneRef.current.autoRotate = true;
       }, 3000);
-    }, []);
+    };
 
     // Resize handler
     const handleResize = () => {
@@ -445,8 +441,8 @@ export default function Globe({
     container.addEventListener('mousemove', handleMouseMove);
     container.addEventListener('mouseup', handleMouseUp);
     container.addEventListener('mouseleave', handleMouseUp);
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: true });
+    container.addEventListener('touchstart', handleTouchStart);
+    container.addEventListener('touchmove', handleTouchMove);
     container.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('resize', handleResize);
 

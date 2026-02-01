@@ -1,10 +1,8 @@
 "use client";
 
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+
 import { motion } from "framer-motion";
 import { Scale, FileText, Users, Shield, CreditCard, Clock, AlertCircle } from "lucide-react";
-import type { Metadata } from "next";
 
 const sections = [
   {
@@ -14,7 +12,7 @@ const sections = [
     content: (
       <>
         <p className="text-gray-400 leading-relaxed mb-4">
-          Welcome to <span className="text-white font-semibold">Hexora</span> ("we," "us," or "our"). These Terms and Conditions ("Terms") govern your access to and use of our website, services, and client dashboard (collectively, the "Platform").
+          Welcome to <span className="text-white font-semibold">Hexor</span> ("we," "us," or "our"). These Terms and Conditions ("Terms") govern your access to and use of our website, services, and client dashboard (collectively, the "Platform").
         </p>
         <p className="text-gray-400 leading-relaxed mb-4">
           By accessing or using our Platform, engaging our services, or creating an account, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our Platform or services.
@@ -37,10 +35,10 @@ const sections = [
             <span className="text-white font-semibold">"Services"</span> refers to our digital transformation, automation solutions, ecommerce management, and social media management offerings for MSMEs (Micro, Small, and Medium Enterprises).
           </li>
           <li className="text-gray-400">
-            <span className="text-white font-semibold">"Client"</span> means any business or individual engaging Hexora for professional services.
+            <span className="text-white font-semibold">"Client"</span> means any business or individual engaging Hexor for professional services.
           </li>
           <li className="text-gray-400">
-            <span className="text-white font-semibold">"Deliverables"</span> refers to the work products, solutions, or outcomes provided by Hexora as part of a project or engagement.
+            <span className="text-white font-semibold">"Deliverables"</span> refers to the work products, solutions, or outcomes provided by Hexor as part of a project or engagement.
           </li>
           <li className="text-gray-400">
             <span className="text-white font-semibold">"Platform"</span> includes our website, client dashboard, and any related digital interfaces.
@@ -56,7 +54,7 @@ const sections = [
     content: (
       <>
         <p className="text-gray-400 leading-relaxed mb-4">
-          Hexora provides B2B digital transformation and business automation services designed specifically for MSMEs. Our services include:
+          Hexor provides B2B digital transformation and business automation services designed specifically for MSMEs. Our services include:
         </p>
         <ul className="space-y-3">
           <li className="text-gray-400">
@@ -185,7 +183,7 @@ const sections = [
             <span className="text-white font-semibold">Client Ownership:</span> Upon full payment, clients receive ownership of final deliverables specifically created for their project.
           </li>
           <li className="text-gray-400">
-            <span className="text-white font-semibold">Hexora Proprietary Assets:</span> Our proprietary methodologies, tools, frameworks, templates, and processes remain our exclusive property.
+            <span className="text-white font-semibold">Hexor Proprietary Assets:</span> Our proprietary methodologies, tools, frameworks, templates, and processes remain our exclusive property.
           </li>
           <li className="text-gray-400">
             <span className="text-white font-semibold">Pre-Existing IP:</span> Any intellectual property owned by either party before the engagement remains with the original owner.
@@ -469,7 +467,7 @@ const sections = [
       <>
         <ul className="space-y-3">
           <li className="text-gray-400">
-            <span className="text-white font-semibold">Entire Agreement:</span> These Terms, along with any project-specific agreements, constitute the entire agreement between you and Hexora.
+            <span className="text-white font-semibold">Entire Agreement:</span> These Terms, along with any project-specific agreements, constitute the entire agreement between you and Hexor.
           </li>
           <li className="text-gray-400">
             <span className="text-white font-semibold">Severability:</span> If any provision is found unenforceable, the remaining provisions shall remain in full effect.
@@ -484,7 +482,7 @@ const sections = [
             <span className="text-white font-semibold">Force Majeure:</span> Neither party is liable for delays or failures caused by events beyond reasonable control.
           </li>
           <li className="text-gray-400">
-            <span className="text-white font-semibold">Independent Contractor:</span> The relationship between Hexora and clients is that of independent contractors, not employer-employee.
+            <span className="text-white font-semibold">Independent Contractor:</span> The relationship between Hexor and clients is that of independent contractors, not employer-employee.
           </li>
         </ul>
       </>
@@ -501,7 +499,7 @@ const sections = [
         </p>
         <div className="space-y-3 text-gray-400">
           <p>
-            <span className="text-white font-semibold">Company Name:</span> Hexora
+            <span className="text-white font-semibold">Company Name:</span> Hexor
           </p>
           <p>
             <span className="text-white font-semibold">Location:</span> Chennai, Tamil Nadu, India
@@ -509,7 +507,7 @@ const sections = [
           <p>
             <span className="text-white font-semibold">Website:</span>{' '}
             <a href="/" className="text-primary hover:underline">
-              hexora.com
+              Hexor.com
             </a>
           </p>
           <p>
@@ -527,10 +525,8 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header />
-
       {/* Hero Section */}
-      <section className="pt-40 pb-20 px-4">
+      <section className="pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -559,7 +555,7 @@ export default function TermsPage() {
               <div>
                 <h3 className="font-semibold text-white mb-2">Important Notice</h3>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  These Terms and Conditions govern your use of Hexora's services and Platform. By accessing our website, creating an account, or engaging our services, you agree to be bound by these Terms. If you have any questions, please contact us before proceeding.
+                  These Terms and Conditions govern your use of Hexor's services and Platform. By accessing our website, creating an account, or engaging our services, you agree to be bound by these Terms. If you have any questions, please contact us before proceeding.
                 </p>
               </div>
             </div>
@@ -603,7 +599,7 @@ export default function TermsPage() {
             <Scale className="h-8 w-8 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-bold text-white mb-3">Acknowledgment</h3>
             <p className="text-gray-400 leading-relaxed max-w-2xl mx-auto">
-              By using Hexora's services, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions. These Terms constitute a legally binding agreement between you and Hexora.
+              By using Hexor's services, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions. These Terms constitute a legally binding agreement between you and Hexor.
             </p>
             <p className="text-sm text-gray-500 mt-4">
               Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -611,8 +607,6 @@ export default function TermsPage() {
           </motion.div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

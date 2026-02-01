@@ -46,9 +46,9 @@ export function Header() {
   const scrollUpStartY = React.useRef(0);
 
   React.useEffect(() => {
-    // If on services page, set active section to services
-    if (pathname === "/services") {
-      setActiveSection("services");
+    // Only track sections on home page
+    if (pathname !== "/") {
+      setActiveSection("");
       return;
     }
 
@@ -163,20 +163,20 @@ export function Header() {
             {/* Navigation - center, always visible */}
             <nav className="hidden items-center gap-2 md:flex flex-shrink-0">
               {navItems.map((item) => {
-                const isActive = activeSection === item.href.replace("#", "");
-                const isServicesLink = item.href === "#services" && pathname === "/services";
+                const isActive = pathname === "/" && activeSection === item.href.replace("#", "");
+                const isOnHomePage = pathname === "/";
                 return (
                   <Link
                     key={item.href}
-                    href={isServicesLink ? "/services" : item.href}
+                    href={isOnHomePage ? item.href : `/${item.href}`}
                     onClick={(e) => {
-                      if (!isServicesLink) {
+                      if (isOnHomePage) {
                         handleSmoothScroll(e as React.MouseEvent<HTMLAnchorElement>, item.href);
                       }
                     }}
                     className={cn(
                       "rounded-lg px-4 py-2 text-sm font-medium transition-all whitespace-nowrap",
-                      isActive || isServicesLink
+                      isActive
                         ? "bg-white/10 text-white"
                         : "text-gray-400 hover:text-white"
                     )}
