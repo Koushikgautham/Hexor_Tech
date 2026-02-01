@@ -30,12 +30,24 @@ import { createClient } from "@/lib/supabase/client";
 // Create client instance for this page
 const supabase = createClient();
 
+function formatLastSeen(lastSeen: string | null): string {
+    if (!lastSeen) return "Never";
+    const diff = Date.now() - new Date(lastSeen).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}
+
 export default function UsersPage() {
     const [users, setUsers] = React.useState<UserProfile[]>([]);
     const [searchQuery, setSearchQuery] = React.useState("");
     const [roleFilter, setRoleFilter] = React.useState<"all" | UserRole>("all");
     const [statusFilter, setStatusFilter] = React.useState<
-        "all" | "active" | "inactive"
+        "all" | "active" | "inactive" | "online" | "offline"
     >("all");
     const [selectedUser, setSelectedUser] = React.useState<UserProfile | null>(
         null
@@ -60,21 +72,30 @@ export default function UsersPage() {
         fetchUsers();
     }, []);
 
-    const fetchUsers = async () => {
-        setIsFetching(true);
+    // Poll for presence updates every 30 seconds
+    React.useEffect(() => {
+        const pollInterval = setInterval(() => {
+            fetchUsers(false);
+        }, 30000);
+
+        return () => clearInterval(pollInterval);
+    }, []);
+
+    const fetchUsers = async (showLoading = true) => {
+        if (showLoading) setIsFetching(true);
         try {
             const response = await fetch("/api/admin/users");
             if (response.ok) {
                 const data = await response.json();
                 setUsers(data.users || []);
             } else {
-                toast.error("Failed to fetch users");
+                if (showLoading) toast.error("Failed to fetch users");
             }
         } catch (error) {
             console.error(error);
-            toast.error("Error fetching users");
+            if (showLoading) toast.error("Error fetching users");
         } finally {
-            setIsFetching(false);
+            if (showLoading) setIsFetching(false);
         }
     };
 
@@ -89,7 +110,9 @@ export default function UsersPage() {
             const matchesStatus =
                 statusFilter === "all" ||
                 (statusFilter === "active" && user.is_active) ||
-                (statusFilter === "inactive" && !user.is_active);
+                (statusFilter === "inactive" && !user.is_active) ||
+                (statusFilter === "online" && user.is_online) ||
+                (statusFilter === "offline" && !user.is_online);
             return matchesSearch && matchesRole && matchesStatus;
         });
     }, [users, searchQuery, roleFilter, statusFilter]);
@@ -277,13 +300,15 @@ export default function UsersPage() {
                 <select
                     value={statusFilter}
                     onChange={(e) =>
-                        setStatusFilter(e.target.value as "all" | "active" | "inactive")
+                        setStatusFilter(e.target.value as "all" | "active" | "inactive" | "online" | "offline")
                     }
                     className="px-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 >
                     <option value="all">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
                 </select>
             </div>
 
@@ -333,11 +358,21 @@ export default function UsersPage() {
                                         >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <span className="text-primary font-medium">
-                                                            {user.full_name?.charAt(0) ||
-                                                                user.email.charAt(0).toUpperCase()}
-                                                        </span>
+                                                    <div className="relative">
+                                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <span className="text-primary font-medium">
+                                                                {user.full_name?.charAt(0) ||
+                                                                    user.email.charAt(0).toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                        <span
+                                                            className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card ${
+                                                                user.is_online
+                                                                    ? "bg-emerald-500"
+                                                                    : "bg-gray-400"
+                                                            }`}
+                                                            title={user.is_online ? "Online" : `Last seen ${formatLastSeen(user.last_seen)}`}
+                                                        />
                                                     </div>
                                                     <div>
                                                         <p className="font-medium text-foreground">
@@ -374,19 +409,38 @@ export default function UsersPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span
-                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.is_active
-                                                        ? "bg-green-500/10 text-green-500"
-                                                        : "bg-red-500/10 text-red-500"
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span
+                                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${user.is_active
+                                                            ? "bg-green-500/10 text-green-500"
+                                                            : "bg-red-500/10 text-red-500"
+                                                            }`}
+                                                    >
+                                                        {user.is_active ? (
+                                                            <CheckCircle2 className="w-3 h-3" />
+                                                        ) : (
+                                                            <XCircle className="w-3 h-3" />
+                                                        )}
+                                                        {user.is_active ? "Active" : "Inactive"}
+                                                    </span>
+                                                    <span
+                                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                                                            user.is_online
+                                                                ? "bg-emerald-500/10 text-emerald-500"
+                                                                : "bg-gray-500/10 text-gray-400"
                                                         }`}
-                                                >
-                                                    {user.is_active ? (
-                                                        <CheckCircle2 className="w-3 h-3" />
-                                                    ) : (
-                                                        <XCircle className="w-3 h-3" />
-                                                    )}
-                                                    {user.is_active ? "Active" : "Inactive"}
-                                                </span>
+                                                        title={user.is_online ? "Currently online" : `Last seen ${formatLastSeen(user.last_seen)}`}
+                                                    >
+                                                        <span
+                                                            className={`w-2 h-2 rounded-full ${
+                                                                user.is_online
+                                                                    ? "bg-emerald-500 animate-pulse"
+                                                                    : "bg-gray-400"
+                                                            }`}
+                                                        />
+                                                        {user.is_online ? "Online" : "Offline"}
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-muted-foreground">
                                                 {new Date(user.created_at).toLocaleDateString()}
@@ -859,6 +913,8 @@ function AddUserForm({
                 updated_at: new Date().toISOString(),
                 avatar_url: null,
                 is_active: true,
+                last_seen: null,
+                is_online: false,
             };
 
             onSuccess(newUser);

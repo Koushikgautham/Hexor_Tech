@@ -26,7 +26,19 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({ users: profiles });
+        // Compute effective online status based on last_seen threshold
+        // Users are considered offline if last_seen > 2 minutes ago
+        const TWO_MINUTES_MS = 2 * 60 * 1000;
+        const now = Date.now();
+
+        const usersWithPresence = (profiles || []).map(profile => ({
+            ...profile,
+            is_online: profile.is_online && profile.last_seen
+                ? (now - new Date(profile.last_seen).getTime()) < TWO_MINUTES_MS
+                : false,
+        }));
+
+        return NextResponse.json({ users: usersWithPresence });
     } catch (error) {
         console.error('Error in GET /api/admin/users:', error);
         return NextResponse.json(

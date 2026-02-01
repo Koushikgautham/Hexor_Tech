@@ -49,4 +49,6 @@ export interface UserProfile {
     avatar_url: string | null;
     is_active: boolean;
     is_scrum_master?: boolean;
+    last_seen: string | null;
+    is_online: boolean;
 }

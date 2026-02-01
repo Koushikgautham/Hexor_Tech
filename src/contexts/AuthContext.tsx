@@ -36,21 +36,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch user profile from database
     const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
         try {
-            // Timeout after 10 seconds to prevent hanging
+            let timeoutId: ReturnType<typeof setTimeout>;
+
             const fetchPromise = supabase
                 .from("profiles")
                 .select("*")
                 .eq("id", userId)
-                .single();
+                .single()
+                .then((result) => {
+                    clearTimeout(timeoutId);
+                    return result;
+                });
 
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-            );
+            const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+                timeoutId = setTimeout(() => {
+                    resolve({ data: null, error: { message: 'Profile fetch timeout after 15s' } });
+                }, 15000);
+            });
 
-            const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+            const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
             if (error) {
-                console.error("Error fetching profile:", error);
+                console.warn("Profile fetch issue:", error.message || error);
                 return null;
             }
 
@@ -154,6 +161,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             subscription.unsubscribe();
         };
     }, [fetchProfile]);
+
+    // Heartbeat for online presence tracking
+    useEffect(() => {
+        if (!user) return;
+
+        let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+
+        const sendHeartbeat = async () => {
+            try {
+                await fetch('/api/auth/heartbeat', { method: 'POST' });
+            } catch (error) {
+                console.error('Heartbeat failed:', error);
+            }
+        };
+
+        const setOffline = () => {
+            if (navigator.sendBeacon) {
+                const blob = new Blob(
+                    [JSON.stringify({ is_online: false })],
+                    { type: 'application/json' }
+                );
+                navigator.sendBeacon('/api/auth/presence', blob);
+            } else {
+                fetch('/api/auth/presence', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_online: false }),
+                    keepalive: true,
+                }).catch(() => {});
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                sendHeartbeat();
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
+                heartbeatInterval = setInterval(sendHeartbeat, 60000);
+            } else {
+                if (heartbeatInterval) {
+                    clearInterval(heartbeatInterval);
+                    heartbeatInterval = null;
+                }
+            }
+        };
+
+        // Send initial heartbeat immediately
+        sendHeartbeat();
+
+        // Start interval (every 60 seconds)
+        heartbeatInterval = setInterval(sendHeartbeat, 60000);
+
+        // Listen for tab visibility changes
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Listen for page unload (tab close, browser close)
+        window.addEventListener('beforeunload', setOffline);
+
+        return () => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('beforeunload', setOffline);
+        };
+    }, [user]);
 
     // Sign in with email and password
     const signIn = useCallback(async (email: string, password: string) => {
@@ -260,6 +330,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Sign out
     const signOut = useCallback(async () => {
+        // Set offline status before signing out
+        try {
+            await fetch('/api/auth/presence', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_online: false }),
+            });
+        } catch (error) {
+            console.error('Failed to set offline status:', error);
+        }
+
         await supabase.auth.signOut();
         setSession(null);
         setUser(null);
