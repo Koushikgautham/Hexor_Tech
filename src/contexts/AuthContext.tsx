@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .select("*")
                 .eq("id", userId)
                 .single()
-                .then((result) => {
+                .then((result: { data: unknown; error: unknown }) => {
                     clearTimeout(timeoutId);
                     return result;
                 });
