@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { team } from "@/data/team";
 import Globe from "@/components/Globe";
-import { HexorLogo3D } from "@/components/HexoraLogo3D";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -112,23 +111,8 @@ export function Team() {
               </div>
             </div>
 
-            {/* Center Column - 3D Logo */}
-            <div className="md:col-span-4">
-              <div className="about-card flex h-full min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/5 bg-[#111] p-8">
-                <div className="h-64 w-64">
-                  <HexorLogo3D className="h-full w-full" autoRotate={true} />
-                </div>
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-400">Framer Pro Expert & Partner</p>
-                  <a href="#" className="mt-2 inline-flex items-center text-xs text-gray-500 hover:text-primary">
-                    Learn More →
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Globe (half visible) */}
-            <div className="about-card relative md:col-span-5 md:-mr-6 lg:-mr-8">
+            {/* Globe Card */}
+            <div className="about-card relative md:col-span-9">
               <div className="relative flex h-full min-h-[400px] flex-col rounded-2xl border border-white/5 bg-[#111]">
                 <div className="absolute left-0 top-8 z-10 px-8">
                   <p className="mb-1 text-lg font-semibold text-white">

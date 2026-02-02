@@ -41,11 +41,16 @@ const handleSmoothScroll = (
 export function Header() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
   const [isCompact, setIsCompact] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState("hero");
   const lastScrollY = React.useRef(0);
   const scrollUpStartY = React.useRef(0);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     // Only track sections on home page
@@ -208,29 +213,33 @@ export function Header() {
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="h-9 w-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
               >
-                <AnimatePresence mode="wait">
-                  {theme === "dark" ? (
-                    <motion.div
-                      key="sun"
-                      initial={{ rotate: -90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Sun className="h-4 w-4" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon"
-                      initial={{ rotate: 90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Moon className="h-4 w-4" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {!mounted ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <AnimatePresence mode="wait">
+                    {theme === "dark" ? (
+                      <motion.div
+                        key="sun"
+                        initial={{ rotate: -90, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: 90, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Sun className="h-4 w-4" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="moon"
+                        initial={{ rotate: 90, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: -90, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Moon className="h-4 w-4" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
               </Button>
               <Link
                 href="/auth/login"
@@ -315,33 +324,40 @@ export function Header() {
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                   className="w-full rounded-lg border-white/10 py-3 text-sm font-medium"
                 >
-                  <AnimatePresence mode="wait">
-                    {theme === "dark" ? (
-                      <motion.div
-                        key="sun"
-                        initial={{ rotate: -90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: 90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center gap-2"
-                      >
-                        <Sun className="h-4 w-4" />
-                        <span>Light Mode</span>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="moon"
-                        initial={{ rotate: 90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: -90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center gap-2"
-                      >
-                        <Moon className="h-4 w-4" />
-                        <span>Dark Mode</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {!mounted ? (
+                    <div className="flex items-center gap-2">
+                      <Sun className="h-4 w-4" />
+                      <span>Light Mode</span>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      {theme === "dark" ? (
+                        <motion.div
+                          key="sun"
+                          initial={{ rotate: -90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: 90, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center gap-2"
+                        >
+                          <Sun className="h-4 w-4" />
+                          <span>Light Mode</span>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="moon"
+                          initial={{ rotate: 90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: -90, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center gap-2"
+                        >
+                          <Moon className="h-4 w-4" />
+                          <span>Dark Mode</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
                 </Button>
                 <Link
                   href="/auth/login"
