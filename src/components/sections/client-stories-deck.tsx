@@ -1,9 +1,56 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
 import { testimonials } from "@/data/testimonials";
+
+// Memoized story card component to prevent unnecessary re-renders
+const StoryCardMemo = memo(({ testimonial, cardIndex, anglePerCard, cylinderRadius }: any) => (
+  <motion.div
+    className="absolute left-1/2 top-1/2 w-64"
+    style={{
+      transform: `
+        translateX(-50%)
+        translateY(-50%)
+        rotateY(${cardIndex * anglePerCard}deg)
+        translateZ(${cylinderRadius}px)
+      `,
+      transformStyle: "preserve-3d",
+      backfaceVisibility: "hidden",
+      willChange: "transform",
+    }}
+  >
+    <div className="rounded-xl border border-white/10 bg-gradient-to-br from-[#111]/80 to-[#0a0a0a]/80 backdrop-blur-sm p-6 shadow-xl hover:border-primary/40 transition-all h-full flex flex-col select-none">
+      {/* Quote Icon */}
+      <Quote className="mb-4 h-8 w-8 text-primary flex-shrink-0" strokeWidth={1.5} />
+
+      {/* Quote Text */}
+      <blockquote className="mb-6 flex-1 text-sm leading-relaxed text-gray-200 pointer-events-none">
+        "{testimonial.quote}"
+      </blockquote>
+
+      {/* Author Info */}
+      <div className="border-t border-white/10 pt-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary flex-shrink-0">
+            {testimonial.author.charAt(0)}
+          </div>
+          <div className="min-w-0 pointer-events-none">
+            <p className="font-semibold text-white text-xs truncate">
+              {testimonial.author}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {testimonial.role}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+));
+
+StoryCardMemo.displayName = "StoryCard";
 
 export function ClientStoriesDeck() {
   const [rotation, setRotation] = useState(0);
@@ -54,12 +101,12 @@ export function ClientStoriesDeck() {
     <section id="client-stories" className="relative bg-[#0a0a0a] py-20 lg:py-28 overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-12 text-center lg:mb-16">
+        <div className="mb-12 text-center lg:mb-16 select-none">
           <motion.span
             initial={{ opacity: 0, y: -20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-3 block font-mono text-xs text-gray-500"
+            className="mb-3 block font-mono text-xs text-gray-500 pointer-events-none"
           >
             // what they say
           </motion.span>
@@ -67,7 +114,7 @@ export function ClientStoriesDeck() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl font-bold tracking-tight text-white sm:text-5xl"
+            className="text-4xl font-bold tracking-tight text-white sm:text-5xl pointer-events-none"
           >
             Client <span className="text-gray-400">stories.</span>
           </motion.h2>
@@ -75,7 +122,7 @@ export function ClientStoriesDeck() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-4 mx-auto max-w-2xl text-sm leading-relaxed text-gray-400"
+            className="mt-4 mx-auto max-w-2xl text-sm leading-relaxed text-gray-400 pointer-events-none"
           >
             Drag to explore real experiences from our satisfied clients.
           </motion.p>
@@ -84,10 +131,10 @@ export function ClientStoriesDeck() {
         {/* Cylinder Container */}
         <div
           ref={containerRef}
-          className={`relative mx-auto h-96 max-w-3xl flex items-center justify-center ${
+          className={`relative mx-auto h-96 max-w-3xl flex items-center justify-center select-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
-          style={{ perspective: "1200px" }}
+          style={{ perspective: "1200px", touchAction: "none" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -99,6 +146,7 @@ export function ClientStoriesDeck() {
             className="relative w-full h-full"
             style={{
               transformStyle: "preserve-3d",
+              willChange: "transform",
             }}
             animate={{ rotateY: rotation }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -106,55 +154,15 @@ export function ClientStoriesDeck() {
             {/* Looped cards for seamless cycling */}
             {[...testimonials, ...testimonials].map((testimonial, index) => {
               const cardIndex = index % totalCards;
-              const angle = (cardIndex * anglePerCard * Math.PI) / 180;
 
               return (
-                <motion.div
+                <StoryCardMemo
                   key={`${testimonial.id}-${index}`}
-                  className="absolute left-1/2 top-1/2 w-64"
-                  style={{
-                    transform: `
-                      translateX(-50%)
-                      translateY(-50%)
-                      rotateY(${cardIndex * anglePerCard}deg)
-                      translateZ(${cylinderRadius}px)
-                    `,
-                    transformStyle: "preserve-3d",
-                    backfaceVisibility: "hidden",
-                  }}
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: cardIndex * 0.05 }}
-                    className="rounded-xl border border-white/10 bg-gradient-to-br from-[#111]/80 to-[#0a0a0a]/80 backdrop-blur-sm p-6 shadow-xl hover:border-primary/40 transition-all h-full flex flex-col"
-                  >
-                    {/* Quote Icon */}
-                    <Quote className="mb-4 h-8 w-8 text-primary" strokeWidth={1.5} />
-
-                    {/* Quote Text */}
-                    <blockquote className="mb-6 flex-1 text-sm leading-relaxed text-gray-200">
-                      "{testimonial.quote}"
-                    </blockquote>
-
-                    {/* Author Info */}
-                    <div className="border-t border-white/10 pt-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary flex-shrink-0">
-                          {testimonial.author.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-white text-xs truncate">
-                            {testimonial.author}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {testimonial.role}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
+                  testimonial={testimonial}
+                  cardIndex={cardIndex}
+                  anglePerCard={anglePerCard}
+                  cylinderRadius={cylinderRadius}
+                />
               );
             })}
           </motion.div>
@@ -176,7 +184,7 @@ export function ClientStoriesDeck() {
         </div>
 
         {/* Controls Info */}
-        <div className="mt-10 text-center">
+        <div className="mt-10 text-center select-none pointer-events-none">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
