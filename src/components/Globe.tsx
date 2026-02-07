@@ -25,6 +25,7 @@ export default function Globe({
 }: GlobeProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<{
     scene: THREE.Scene;
@@ -40,6 +41,26 @@ export default function Globe({
     previousMousePosition: { x: number; y: number };
     animationId: number;
   } | null>(null);
+  const isVisibleRef = useRef(true);
+
+  // Setup Intersection Observer to pause animation when out of viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -450,16 +471,20 @@ export default function Globe({
     const animate = () => {
       if (!sceneRef.current) return;
 
-      if (sceneRef.current.autoRotate) {
-        sceneRef.current.targetRotationY += 0.0015;
+      // Only update and render if component is visible
+      if (isVisibleRef.current) {
+        if (sceneRef.current.autoRotate) {
+          sceneRef.current.targetRotationY += 0.0015;
+        }
+
+        sceneRef.current.globeGroup.rotation.y +=
+          (sceneRef.current.targetRotationY - sceneRef.current.globeGroup.rotation.y) * 0.05;
+        sceneRef.current.globeGroup.rotation.x +=
+          (sceneRef.current.targetRotationX - sceneRef.current.globeGroup.rotation.x) * 0.05;
+
+        sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
       }
-
-      sceneRef.current.globeGroup.rotation.y +=
-        (sceneRef.current.targetRotationY - sceneRef.current.globeGroup.rotation.y) * 0.05;
-      sceneRef.current.globeGroup.rotation.x +=
-        (sceneRef.current.targetRotationX - sceneRef.current.globeGroup.rotation.x) * 0.05;
-
-      sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
+      
       sceneRef.current.animationId = requestAnimationFrame(animate);
     };
 

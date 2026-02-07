@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ChevronLeft, ChevronRight, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { team } from "@/data/team";
 import Globe from "@/components/Globe";
@@ -22,8 +21,6 @@ const tools = [
 
 export function Team() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [currentMemberIndex, setCurrentMemberIndex] = useState(0);
-  const currentMember = team[currentMemberIndex];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -55,14 +52,6 @@ export function Team() {
 
     return () => ctx.revert();
   }, []);
-
-  const nextMember = () => {
-    setCurrentMemberIndex((prev) => (prev + 1) % team.length);
-  };
-
-  const prevMember = () => {
-    setCurrentMemberIndex((prev) => (prev - 1 + team.length) % team.length);
-  };
 
   return (
     <section
@@ -141,95 +130,28 @@ export function Team() {
           </div>
         </div>
 
-        {/* Founder Section with Carousel */}
-        <div className="founder-section rounded-2xl border border-white/5 bg-[#111] overflow-hidden">
-          <div className="grid md:grid-cols-2">
-            {/* Photo Side */}
-            <div className="relative h-96 md:h-auto">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#111] to-[#0a0a0a]">
-                <img
-                  src={currentMember.avatar}
-                  alt={currentMember.name}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  onError={(e) => {
-                    // Fallback to initials if image fails
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = "none";
-                  }}
-                />
-              </div>
-              {/* Name overlay on photo */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                <h3 className="text-2xl font-bold text-white lg:text-3xl">
-                  {currentMember.name}
-                </h3>
-                <p className="text-sm font-medium text-primary-foreground/80">
-                  {currentMember.role}
-                </p>
-              </div>
-            </div>
-
-            {/* Bio Side */}
-            <div className="flex flex-col justify-between p-8 lg:p-12">
-              <div>
-                <span className="mb-6 block font-mono text-xs text-gray-600">
-                  // the founders
-                </span>
-                <p className="mb-6 text-base leading-relaxed text-gray-300 lg:text-lg">
-                  {currentMember.bio}
-                </p>
-                <p className="mb-8 text-sm leading-relaxed text-gray-400">
-                  We&apos;re a team of passionate technologists and business strategists
-                  dedicated to transforming MSMEs through innovative digital solutions.
-                  With combined decades of experience, we bring both technical expertise
-                  and business acumen to every project.
-                </p>
-
-                {/* Social Links */}
-                <div className="flex gap-3">
-                  <a
-                    href={currentMember.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-primary hover:bg-primary hover:text-white"
-                  >
-                    <Linkedin className="h-4 w-4" />
-                  </a>
-                  <a
-                    href={currentMember.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-primary hover:bg-primary hover:text-white"
-                  >
-                    <Twitter className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Carousel Controls */}
-              <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-gray-600">
-                    {String(currentMemberIndex + 1).padStart(2, '0')} / {String(team.length).padStart(2, '0')}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={prevMember}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
-                    aria-label="Previous team member"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={nextMember}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
-                    aria-label="Next team member"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
+        {/* About Company Section */}
+        <div className="founder-section space-y-8">
+          {/* Main Company Overview */}
+          <div className="rounded-2xl border border-white/5 bg-[#111] p-8 lg:p-12">
+            <span className="mb-6 block font-mono text-xs text-gray-600">
+              // about hexora
+            </span>
+            <div className="mb-8">
+              <h3 className="mb-4 text-2xl font-bold text-white lg:text-3xl">
+                Transforming MSMEs Through Technology
+              </h3>
+              <p className="mb-6 text-base leading-relaxed text-gray-300 lg:text-lg">
+                We&apos;re a team of passionate technologists and business strategists 
+                dedicated to driving digital transformation for Small and Medium-sized Enterprises. 
+                With combined decades of experience, we understand the unique challenges businesses 
+                face and deliver tailored solutions that drive measurable growth.
+              </p>
+              <p className="text-sm leading-relaxed text-gray-400">
+                Our mission is simple: leverage cutting-edge technology to empower MSMEs with the 
+                tools and strategies they need to compete globally. Every project is built on a 
+                foundation of technical excellence, business insight, and genuine partnership.
+              </p>
             </div>
           </div>
         </div>
