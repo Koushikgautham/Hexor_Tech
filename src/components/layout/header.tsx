@@ -4,8 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -40,7 +39,6 @@ const handleSmoothScroll = (
 
 export function Header() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const [isCompact, setIsCompact] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -145,11 +143,11 @@ export function Header() {
             transformOrigin: "center"
           }}
         >
-          <div className="flex h-16 items-center gap-8 w-full px-6">
+          <div className="flex h-16 items-center justify-center gap-8 w-full px-6">
             {/* Logo - left side */}
             <div
               className={cn(
-                "flex-shrink-0 transition-all duration-700 ease-in-out",
+                "absolute left-6 flex-shrink-0 transition-all duration-700 ease-in-out",
                 isCompact ? "opacity-0 scale-95 max-w-0 overflow-hidden" : "opacity-100 scale-100 max-w-xs"
               )}
             >
@@ -161,13 +159,7 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Left spacer - collapses when compact */}
-            <div className={cn(
-              "transition-all duration-700 ease-in-out",
-              isCompact ? "flex-none w-0" : "flex-1"
-            )} />
-
-            {/* Navigation - center, always visible */}
+            {/* Navigation - center, always visible and static */}
             <nav className="hidden items-center gap-2 md:flex flex-shrink-0">
               {navItems.map((item) => {
                 const isActive = pathname === "/" && activeSection === item.href.replace("#", "");
@@ -194,53 +186,13 @@ export function Header() {
               })}
             </nav>
 
-            {/* Right spacer - collapses when compact */}
-            <div className={cn(
-              "transition-all duration-700 ease-in-out",
-              isCompact ? "flex-none w-0" : "flex-1"
-            )} />
-
-            {/* Right side - buttons */}
+            {/* Login - right side */}
             <div
               className={cn(
-                "hidden items-center gap-4 md:flex flex-shrink-0 transition-all duration-700 ease-in-out pr-2",
+                "absolute right-6 hidden items-center gap-4 md:flex flex-shrink-0 transition-all duration-700 ease-in-out pr-2",
                 isCompact ? "opacity-0 scale-95 max-w-0 overflow-hidden" : "opacity-100 scale-100 max-w-xs"
               )}
             >
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="h-9 w-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
-              >
-                {!mounted ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <AnimatePresence mode="wait">
-                    {theme === "dark" ? (
-                      <motion.div
-                        key="sun"
-                        initial={{ rotate: -90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: 90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Sun className="h-4 w-4" />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="moon"
-                        initial={{ rotate: 90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: -90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Moon className="h-4 w-4" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                )}
-              </Button>
               <Link
                 href="/auth/login"
                 className="text-sm font-medium text-gray-400 transition-colors hover:text-white whitespace-nowrap"
@@ -319,46 +271,6 @@ export function Header() {
                 transition={{ delay: navItems.length * 0.1 }}
                 className="mt-8 space-y-3"
               >
-                <Button
-                  variant="outline"
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="w-full rounded-lg border-white/10 py-3 text-sm font-medium"
-                >
-                  {!mounted ? (
-                    <div className="flex items-center gap-2">
-                      <Sun className="h-4 w-4" />
-                      <span>Light Mode</span>
-                    </div>
-                  ) : (
-                    <AnimatePresence mode="wait">
-                      {theme === "dark" ? (
-                        <motion.div
-                          key="sun"
-                          initial={{ rotate: -90, opacity: 0 }}
-                          animate={{ rotate: 0, opacity: 1 }}
-                          exit={{ rotate: 90, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center gap-2"
-                        >
-                          <Sun className="h-4 w-4" />
-                          <span>Light Mode</span>
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="moon"
-                          initial={{ rotate: 90, opacity: 0 }}
-                          animate={{ rotate: 0, opacity: 1 }}
-                          exit={{ rotate: -90, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center gap-2"
-                        >
-                          <Moon className="h-4 w-4" />
-                          <span>Dark Mode</span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  )}
-                </Button>
                 <Link
                   href="/auth/login"
                   onClick={() => setIsMobileMenuOpen(false)}

@@ -101,31 +101,35 @@ export function ClientStoriesDeck() {
     <section id="client-stories" className="relative bg-[#0a0a0a] py-20 lg:py-28 overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-12 text-center lg:mb-16 select-none">
+        <div className="mb-12 lg:mb-16 select-none">
           <motion.span
             initial={{ opacity: 0, y: -20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-3 block font-mono text-xs text-gray-500 pointer-events-none"
+            className="mb-4 block font-mono text-xs text-gray-500 pointer-events-none"
           >
             // what they say
           </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl font-bold tracking-tight text-white sm:text-5xl pointer-events-none"
-          >
-            Client <span className="text-gray-400">stories.</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-4 mx-auto max-w-2xl text-sm leading-relaxed text-gray-400 pointer-events-none"
-          >
-            Drag to explore real experiences from our satisfied clients.
-          </motion.p>
+          <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+            <div>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl pointer-events-none"
+              >
+                Client <span className="text-gray-400">stories.</span>
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="mt-4 max-w-xl text-sm leading-relaxed text-gray-400 pointer-events-none"
+              >
+                Drag to explore real experiences from our satisfied clients.
+              </motion.p>
+            </div>
+          </div>
         </div>
 
         {/* Cylinder Container */}
