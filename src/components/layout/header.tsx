@@ -201,86 +201,88 @@ export function Header() {
               </Link>
             </div>
 
-          {/* Mobile Menu Trigger */}
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-white hover:bg-white/5"
-              >
-                <AnimatePresence mode="wait">
-                  {isMobileMenuOpen ? (
-                    <motion.div
-                      key="close"
-                      initial={{ rotate: -90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 90, opacity: 0 }}
-                    >
-                      <X className="h-4 w-4" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="menu"
-                      initial={{ rotate: 90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -90, opacity: 0 }}
-                    >
-                      <Menu className="h-4 w-4" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-full max-w-sm border-white/5 bg-[#0a0a0a]"
-            >
-              <div className="mt-4 font-mono text-xs text-gray-500">
+            {/* Mobile Menu Trigger */}
+            <div className="flex w-full items-center justify-end md:hidden">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild className="md:hidden">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-white hover:bg-white/5"
+                  >
+                    <AnimatePresence mode="wait">
+                      {isMobileMenuOpen ? (
+                        <motion.div
+                          key="close"
+                          initial={{ rotate: -90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: 90, opacity: 0 }}
+                        >
+                          <X className="h-4 w-4" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="menu"
+                          initial={{ rotate: 90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: -90, opacity: 0 }}
+                        >
+                          <Menu className="h-4 w-4" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  className="w-full max-w-sm border-white/5 bg-[#0a0a0a]"
+                >
+                  <div className="mt-4 font-mono text-xs text-gray-500">
                 // navigation
-              </div>
-              <nav className="mt-4 flex flex-col gap-1">
-                {navItems.map((item, index) => (
+                  </div>
+                  <nav className="mt-4 flex flex-col gap-1">
+                    {navItems.map((item, index) => (
+                      <motion.div
+                        key={item.href}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <a
+                          href={item.href}
+                          onClick={(e) => {
+                            handleSmoothScroll(e, item.href);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={cn(
+                            "block rounded-lg px-4 py-3 text-lg font-medium transition-all",
+                            activeSection === item.href.replace("#", "")
+                              ? "bg-white/5 text-white"
+                              : "text-gray-400 hover:bg-white/5 hover:text-white"
+                          )}
+                        >
+                          {item.label}
+                        </a>
+                      </motion.div>
+                    ))}
+                  </nav>
                   <motion.div
-                    key={item.href}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: navItems.length * 0.1 }}
+                    className="mt-8 space-y-3"
                   >
-                    <a
-                      href={item.href}
-                      onClick={(e) => {
-                        handleSmoothScroll(e, item.href);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={cn(
-                        "block rounded-lg px-4 py-3 text-lg font-medium transition-all",
-                        activeSection === item.href.replace("#", "")
-                          ? "bg-white/5 text-white"
-                          : "text-gray-400 hover:bg-white/5 hover:text-white"
-                      )}
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block w-full rounded-lg border border-white/10 py-3 text-center text-sm font-medium text-white transition-all hover:bg-white/5"
                     >
-                      {item.label}
-                    </a>
+                      Login
+                    </Link>
                   </motion.div>
-                ))}
-              </nav>
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: navItems.length * 0.1 }}
-                className="mt-8 space-y-3"
-              >
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full rounded-lg border border-white/10 py-3 text-center text-sm font-medium text-white transition-all hover:bg-white/5"
-                >
-                  Login
-                </Link>
-              </motion.div>
-            </SheetContent>
-          </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>
