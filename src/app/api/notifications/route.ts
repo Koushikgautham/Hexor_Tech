@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase-server";
+import { createClient as createServerClient } from '@/lib/authentication/SupabaseServerClient';
 
 // GET notifications for current user
 export async function GET(request: NextRequest) {

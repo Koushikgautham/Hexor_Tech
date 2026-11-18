@@ -1,8 +1,8 @@
-export { Hero } from "./hero";
-export { Services } from "./services";
-export { Process } from "./process";
-export { Projects } from "./projects";
-export { Team } from "./team";
-export { Testimonials } from "./testimonials";
-export { ClientStoriesDeck } from "./client-stories-deck";
-export { Contact } from "./contact";
+export { Hero } from "./Hero";
+export { Services } from "./Services";
+export { Process } from "./Process";
+export { Projects } from "./Projects";
+export { Team } from "./Team";
+export { Testimonials } from "./Testimonials";
+export { ClientStoriesDeck } from "./ClientStoriesDeck";
+export { Contact } from "./contact/Contact";

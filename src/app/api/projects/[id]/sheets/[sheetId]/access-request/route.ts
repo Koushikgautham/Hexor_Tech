@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase-server";
+import { createClient as createServerClient } from '@/lib/authentication/SupabaseServerClient';
 
 // POST - Request edit access for a sheet
 export async function POST(

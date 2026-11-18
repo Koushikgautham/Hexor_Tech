@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase-server";
+import { createClient as createServerClient } from '@/lib/authentication/SupabaseServerClient';
 
 // POST - Set a user as Scrum Master (unsets previous one)
 export async function POST(request: NextRequest) {
