@@ -59,6 +59,7 @@ export function AddUserForm({
                 is_active: true,
                 last_seen: null,
                 is_online: false,
+                is_scrum_master: false,
             };
 
             onSuccess(newUser);

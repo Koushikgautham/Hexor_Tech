@@ -1,22 +1,12 @@
-/**
- * AUTH TYPES
- * 
- * This file defines all TypeScript types for the authentication system.
- * Centralizing types ensures consistency across all auth components.
- */
+// Types for the `profiles` table (see 01_UserProfilesAndRoles.sql, kept out of git).
 
 /**
- * User roles in the system
- * - 'user': Regular user with limited access
- * - 'admin': Administrative user with full access
- * - 'client': Client user who can view assigned projects
+ * - 'admin':  team member, full access to the admin dashboard
+ * - 'client': can view the projects they are linked to
+ * - 'user':   signed up but not approved yet, no dashboard access
  */
 export type UserRole = "user" | "admin" | "client";
 
-/**
- * User profile stored in the 'profiles' table in Supabase
- * This extends the basic Supabase user with application-specific data
- */
 export interface UserProfile {
     id: string;
     email: string;
@@ -24,9 +14,9 @@ export interface UserProfile {
     role: UserRole;
     avatar_url: string | null;
     is_active: boolean;
-    is_scrum_master?: boolean;
-    last_seen: string | null;
+    is_scrum_master: boolean;
     is_online: boolean;
+    last_seen: string | null;
     created_at: string;
     updated_at: string;
 }

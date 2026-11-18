@@ -18,12 +18,20 @@ export function useLoginAuth() {
     const { signIn } = useAuth();
     const [isLoading, setIsLoading] = React.useState(false);
 
+    // Sent here by /authentication/confirm after a signup confirmation link.
+    React.useEffect(() => {
+        const status = new URLSearchParams(window.location.search).get("status");
+        if (status === "email_confirmed") toast.success("Email confirmed! You can log in now.");
+        if (status === "link_expired") toast.error("That link is invalid or has expired.");
+        if (status) window.history.replaceState(null, "", window.location.pathname);
+    }, []);
+
     const onSubmit = async (data: LoginFormData) => {
         setIsLoading(true);
         try {
             const { error } = await signIn(data.email, data.password);
             if (error) {
-                toast.error(error.message || "Invalid email or password");
+                toast.error(error.message);
             } else {
                 toast.success("Welcome back!");
             }

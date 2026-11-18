@@ -12,7 +12,7 @@ import { passwordSchema, PasswordFormData, passwordRequirements } from "../Setti
 export function SecuritySettings({
     updatePassword,
 }: {
-    updatePassword: (password: string) => Promise<{ error: import("@supabase/supabase-js").AuthError | null }>;
+    updatePassword: (password: string) => Promise<import("@/lib/authentication/AuthenticationContext").AuthActionResult>;
 }) {
     const [isLoading, setIsLoading] = React.useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);

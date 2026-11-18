@@ -58,11 +58,12 @@ export async function updateSession(request: NextRequest) {
       // Fetch user profile to check role
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, is_active')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      const userRole = profile?.role;
+      // A deactivated (or missing) profile gets no dashboard at all.
+      const userRole = profile?.is_active ? profile.role : null;
 
       if (isAdminRoute && userRole !== 'admin') {
         // Non-admin trying to access admin routes

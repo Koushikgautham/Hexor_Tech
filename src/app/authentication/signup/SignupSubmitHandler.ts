@@ -42,7 +42,7 @@ export function useSignupAuth() {
         try {
             const { error } = await signUp(data.email, data.password, data.fullName);
             if (error) {
-                toast.error(error.message || "Failed to create account");
+                toast.error(error.message);
             } else {
                 toast.success(
                     "Account created! Please check your email to verify your account."

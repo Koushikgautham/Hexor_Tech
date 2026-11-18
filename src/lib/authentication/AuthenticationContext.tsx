@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
-import { User, Session, AuthError, AuthChangeEvent } from "@supabase/supabase-js";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { createClient } from "./SupabaseBrowserClient";
-import { fetchProfileById } from "./FetchUserProfile";
-import { usePresenceHeartbeat } from "./UsePresenceHeartbeat";
-import { UserProfile, UserRole } from "./UserProfileTypes";
+import type { UserProfile } from "./UserProfileTypes";
+
+// Every auth action resolves to this, so forms only need `error.message`.
+export type AuthActionResult = { error: { message: string } | null };
 
 interface AuthContextType {
     user: User | null;
@@ -14,273 +15,206 @@ interface AuthContextType {
     profile: UserProfile | null;
     isLoading: boolean;
     isAdmin: boolean;
-    signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-    signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
+    signIn: (email: string, password: string) => Promise<AuthActionResult>;
+    signUp: (email: string, password: string, fullName: string) => Promise<AuthActionResult>;
     signOut: () => Promise<void>;
-    resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
-    updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+    resetPassword: (email: string) => Promise<AuthActionResult>;
+    updatePassword: (newPassword: string) => Promise<AuthActionResult>;
     refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Get singleton supabase client
 const supabase = createClient();
 
+// Where Supabase email links (password reset, signup confirmation) land.
+// This URL must be listed in Supabase → Authentication → URL Configuration.
+export const AUTH_CONFIRM_PATH = "/authentication/confirm";
+
+const ROLE_HOME: Record<string, string> = {
+    admin: "/admin/dashboard",
+    client: "/client/dashboard",
+};
+
+function normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
+}
+
+function failure(message: string): AuthActionResult {
+    return { error: { message } };
+}
+
+// Turns Supabase's error codes into messages a user can act on.
+function friendlyAuthError(error: { message: string; code?: string; status?: number }): AuthActionResult {
+    switch (error.code) {
+        case "invalid_credentials":
+            return failure("Invalid email or password");
+        case "email_not_confirmed":
+            return failure("Please confirm your email first. Check your inbox for the link.");
+        case "over_email_send_rate_limit":
+        case "over_request_rate_limit":
+            return failure("Too many attempts. Please wait a minute and try again.");
+        case "same_password":
+            return failure("Your new password must be different from your current password.");
+        case "weak_password":
+            return failure("This password is too weak. Please choose a stronger one.");
+        case "user_already_exists":
+        case "email_exists":
+            return failure("An account with this email already exists. Try logging in instead.");
+    }
+    if (error.status === 429) {
+        return failure("Too many attempts. Please wait a minute and try again.");
+    }
+    return failure(error.message || "Something went wrong. Please try again.");
+}
+
+async function fetchProfile(userId: string): Promise<UserProfile | null> {
+    const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+    if (error) {
+        console.warn("Could not load profile:", error.message);
+        return null;
+    }
+    return data as UserProfile | null;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Track initialization to prevent double-fetching
-    const isInitialized = useRef(false);
-    // Fetch user profile from database
-    const fetchProfile = useCallback((userId: string) => fetchProfileById(userId), []);
+    const user = session?.user ?? null;
+    const userId = user?.id ?? null;
 
-    // SAFETY VALVE: Force loading to stop after 15 seconds max
+    // One listener handles the first load (INITIAL_SESSION) and every later change.
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (isLoading) {
-                console.warn("⚠️ Auth loading took too long, forcing completion");
-                setIsLoading(false);
-            }
-        }, 15000);
-        return () => clearTimeout(timer);
-    }, [isLoading]);
+        let isMounted = true;
 
-    // Refresh profile data
-    const refreshProfile = useCallback(async () => {
-        if (user) {
-            const profileData = await fetchProfile(user.id);
-            if (profileData) {
-                setProfile(profileData);
-            }
-        }
-    }, [user, fetchProfile]);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event: AuthChangeEvent, newSession: Session | null) => {
+                if (!isMounted) return;
+                setSession(newSession);
 
-    useEffect(() => {
-        // Prevent double initialization in strict mode
-        if (isInitialized.current) {
-            return;
-        }
-        isInitialized.current = true;
-
-        let mounted = true;
-
-        const initializeAuth = async () => {
-            try {
-                // Get initial session
-                const { data: { session: initialSession } } = await supabase.auth.getSession();
-
-                if (!mounted) return;
-
-                if (initialSession?.user) {
-                    setSession(initialSession);
-                    setUser(initialSession.user);
-
-                    // Fetch profile and wait for it before setting loading to false
-                    const profileData = await fetchProfile(initialSession.user.id);
-                    if (mounted) {
-                        setProfile(profileData);
-                    }
-                }
-
-                if (mounted) {
+                if (!newSession) {
+                    setProfile(null);
                     setIsLoading(false);
+                    return;
                 }
-            } catch (error) {
-                console.error("Error initializing auth:", error);
-                if (mounted) {
-                    setIsLoading(false);
-                }
-            }
-        };
 
-        initializeAuth();
-
-        // Listen for auth changes
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, newSession: Session | null) => {
-            if (!mounted) return;
-
-            // Only handle actual changes
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                if (newSession?.user) {
-                    setSession(newSession);
-                    setUser(newSession.user);
-
-                    // Only fetch profile if we don't have one or user changed
-                    if (!profile || profile.id !== newSession.user.id) {
-                        const profileData = await fetchProfile(newSession.user.id);
-                        if (mounted) {
-                            setProfile(profileData);
+                // Supabase warns against awaiting its own calls inside this
+                // callback (it can deadlock), so the profile load is deferred.
+                if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "USER_UPDATED") {
+                    setTimeout(async () => {
+                        const loaded = await fetchProfile(newSession.user.id);
+                        if (isMounted) {
+                            setProfile(loaded);
+                            setIsLoading(false);
                         }
-                    }
+                    }, 0);
+                } else {
+                    setIsLoading(false);
                 }
-            } else if (event === 'SIGNED_OUT') {
-                setSession(null);
-                setUser(null);
-                setProfile(null);
             }
-        });
+        );
 
         return () => {
-            mounted = false;
+            isMounted = false;
             subscription.unsubscribe();
         };
-    }, [fetchProfile]);
-
-    // Heartbeat for online presence tracking
-    usePresenceHeartbeat(user);
-
-    // Sign in with email and password
-    const signIn = useCallback(async (email: string, password: string) => {
-        const { error, data } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
-
-        if (!error && data.user) {
-            // Update state immediately
-            setSession(data.session);
-            setUser(data.user);
-
-            // Fetch profile
-            console.log("🔐 Login successful for user:", data.user.id);
-            let userProfile = await fetchProfile(data.user.id);
-
-            // Auto-create profile if missing, or fix role if it's the admin user (self-healing)
-            const isRescueAdmin = email === 'abishekpechiappan@gmail.com';
-
-            if (!userProfile || (isRescueAdmin && userProfile?.role !== 'admin')) {
-                console.log("Profile missing or role incorrect, fixing via API...");
-
-                const role = isRescueAdmin ? 'admin' : 'user';
-
-                try {
-                    // Call the secure API route to create/fix profile (bypassing RLS)
-                    const response = await fetch('/api/auth/fix-profile', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            id: data.user.id,
-                            email: email,
-                            full_name: data.user.user_metadata?.full_name,
-                            role: role
-                        }),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        console.error("Failed to fix profile via API:", result.error);
-                    } else {
-                        console.log("Created/Fixed profile via API:", result.message);
-                        // Re-fetch profile
-                        userProfile = await fetchProfile(data.user.id);
-                    }
-                } catch (apiErr) {
-                    console.error("Exception calling fix-profile API:", apiErr);
-                }
-            }
-
-            console.log("👤 Profile fetched:", userProfile);
-            console.log("🎭 Role:", userProfile?.role);
-            setProfile(userProfile);
-
-            // Small delay to ensure cookies are set, then redirect
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Redirect based on role - use hard redirect to ensure proper cookie sync
-            if (userProfile?.role === "admin") {
-                console.log("✅ Redirecting to ADMIN dashboard");
-                window.location.href = "/admin/dashboard";
-            } else if (userProfile?.role === "client") {
-                console.log("✅ Redirecting to CLIENT dashboard");
-                window.location.href = "/client/dashboard";
-            } else {
-                console.log("❌ Not admin or client, redirecting to UNAUTHORIZED page");
-                console.log("   Profile was:", userProfile);
-                window.location.href = "/authentication/login";
-            }
-        }
-
-        return { error };
-    }, [fetchProfile]);
-
-    // Sign up with email and password
-    const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-        const { error, data } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: fullName,
-                },
-            },
-        });
-
-        // Create profile entry
-        if (!error && data.user) {
-            await supabase.from("profiles").insert({
-                id: data.user.id,
-                email: email,
-                full_name: fullName,
-                role: "user" as UserRole,
-                is_active: true,
-            });
-        }
-
-        return { error };
     }, []);
 
-    // Sign out
-    const signOut = useCallback(async () => {
-        // Set offline status before signing out
-        try {
-            await fetch('/api/auth/presence', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_online: false }),
-            });
-        } catch (error) {
-            console.error('Failed to set offline status:', error);
+    const refreshProfile = useCallback(async () => {
+        if (!userId) return;
+        const loaded = await fetchProfile(userId);
+        if (loaded) setProfile(loaded);
+    }, [userId]);
+
+    const signIn = useCallback(async (email: string, password: string): Promise<AuthActionResult> => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: normalizeEmail(email),
+            password,
+        });
+        if (error) return friendlyAuthError(error);
+
+        const loaded = await fetchProfile(data.user.id);
+
+        if (!loaded) {
+            await supabase.auth.signOut();
+            return failure("Your account profile could not be loaded. Please contact support.");
+        }
+        if (!loaded.is_active) {
+            await supabase.auth.signOut();
+            return failure("This account has been deactivated. Please contact an administrator.");
         }
 
+        const destination = ROLE_HOME[loaded.role];
+        if (!destination) {
+            await supabase.auth.signOut();
+            return failure("Your account is waiting for approval. You'll be able to log in once an admin gives you access.");
+        }
+
+        setProfile(loaded);
+        // Full page load so the server sees the fresh auth cookies.
+        window.location.href = destination;
+        return { error: null };
+    }, []);
+
+    const signUp = useCallback(async (email: string, password: string, fullName: string): Promise<AuthActionResult> => {
+        const { data, error } = await supabase.auth.signUp({
+            email: normalizeEmail(email),
+            password,
+            options: {
+                data: { full_name: fullName.trim() },
+                emailRedirectTo: `${window.location.origin}${AUTH_CONFIRM_PATH}?type=signup`,
+            },
+        });
+        if (error) return friendlyAuthError(error);
+
+        // With email confirmation on, Supabase hides "already registered" by
+        // returning a user with no identities instead of an error.
+        if (data.user && data.user.identities?.length === 0) {
+            return failure("An account with this email already exists. Try logging in or resetting your password.");
+        }
+        // The profile row is created by the database trigger, not here.
+        return { error: null };
+    }, []);
+
+    const signOut = useCallback(async () => {
+        try {
+            await supabase.rpc("update_my_presence", { p_is_online: false });
+        } catch {
+            // Presence is best-effort; never block sign out on it.
+        }
         await supabase.auth.signOut();
         setSession(null);
-        setUser(null);
         setProfile(null);
-        // Use hard redirect to ensure cookies are properly cleared
         window.location.href = "/authentication/login";
     }, []);
 
-    // Reset password (sends email)
-    const resetPassword = useCallback(async (email: string) => {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/authentication/reset-password`,
+    const resetPassword = useCallback(async (email: string): Promise<AuthActionResult> => {
+        const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), {
+            redirectTo: `${window.location.origin}${AUTH_CONFIRM_PATH}?type=recovery`,
         });
-
-        return { error };
+        // Supabase does not reveal whether the email exists, which is what we want.
+        return error ? friendlyAuthError(error) : { error: null };
     }, []);
 
-    // Update password
-    const updatePassword = useCallback(async (newPassword: string) => {
-        const { error } = await supabase.auth.updateUser({
-            password: newPassword,
-        });
-
-        return { error };
+    const updatePassword = useCallback(async (newPassword: string): Promise<AuthActionResult> => {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+            return failure("Your reset link has expired. Please request a new one.");
+        }
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        return error ? friendlyAuthError(error) : { error: null };
     }, []);
 
-    // Derive isAdmin from profile - this is now safe because we wait for profile
-    const isAdmin = profile?.role === "admin";
+    const isAdmin = profile?.role === "admin" && profile.is_active;
 
-    const value = React.useMemo(() => ({
+    const value = useMemo(() => ({
         user,
         session,
         profile,

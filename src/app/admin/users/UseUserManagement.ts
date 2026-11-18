@@ -100,7 +100,7 @@ export function useUserManagement() {
             const { error } = await supabase.auth.resetPasswordForEmail(
                 selectedUser.email,
                 {
-                    redirectTo: `${window.location.origin}/authentication/reset-password`,
+                    redirectTo: `${window.location.origin}/authentication/confirm?type=recovery`,
                 }
             );
             if (error) throw error;
@@ -125,17 +125,22 @@ export function useUserManagement() {
                 body: JSON.stringify({ role: newRole }),
             });
 
-            if (response.ok) {
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok && data.user) {
+                // Use the saved row: the database may also have changed other
+                // fields (e.g. scrum master is cleared when an admin is demoted).
+                const updated = data.user as UserProfile;
                 setUsers((prev) =>
-                    prev.map((u) => (u.id === selectedUser.id ? { ...u, role: newRole } : u))
+                    prev.map((u) => (u.id === updated.id ? { ...u, ...updated, is_online: u.is_online } : u))
                 );
                 toast.success(
-                    `${selectedUser.full_name}'s role changed to ${newRole}`
+                    `${selectedUser.full_name || selectedUser.email}'s role changed to ${newRole}`
                 );
                 setShowModal(null);
                 setSelectedUser(null);
             } else {
-                throw new Error("Failed to update role");
+                toast.error(data.error || "Failed to change role");
             }
         } catch (error) {
             toast.error("Failed to change role");

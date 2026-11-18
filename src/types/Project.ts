@@ -1,5 +1,5 @@
 // Database row types for projects and everything attached to a project.
-// Columns match supabase/sql/SETUP_DATABASE.sql, CLIENT_SCHEMA.sql and PROJECT_DOCUMENTS_SHEETS.sql.
+// Columns match the Supabase schema (supabase/sql/, kept out of git).
 
 export interface Milestone {
     id: string;
