@@ -1,10 +1,6 @@
-export { FadeIn } from "./fade-in";
-export { StaggerChildren, staggerItemVariants } from "./stagger-children";
-export { SpotlightCard } from "./spotlight-card";
-export { TiltedCard } from "./tilted-card";
-export { Particles } from "./particles";
-export { MagneticButton } from "./magnetic-button";
-export { SplashCursor } from "./splash-cursor";
-export { CardSwap, Card } from "./card-swap";
-export { ClickSpark } from "./click-spark";
-export { ThreadsBackground } from "./threads-background";
+export { FadeIn } from "./FadeIn";
+export { StaggerChildren, staggerItemVariants } from "./StaggerChildren";
+export { SplashCursor } from "./SplashCursor";
+export { CardSwap, Card } from "./CardSwap";
+export { ClickSpark } from "./ClickSpark";
+export { ThreadsBackground } from "./ThreadsBackground";
